@@ -1,0 +1,17 @@
+<html>
+  <head>
+    <title>Authroize access</title>
+  </head>
+  <body>
+    <div>
+      <form action="<%= authorize_url %>" method="POST">
+        <input type="hidden" name="verify_url" value="<%= verify_url %>" />
+        <input type="hidden" name="client_id" value="<%= client_id %>" />
+        <%= for scope <- scopes do %>
+          <input type="hidden" name="scopes[]" value="<%= scope %>" />
+        <% end %>
+        <button>Authroize</button>
+      </form>
+    </div>
+  </body>
+</html>
