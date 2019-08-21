@@ -3,16 +3,25 @@ defmodule Oauth2Provider.HTTP.TokenController do
   import Oauth2Provider.Guardian.Plug
   require EEx
 
-  @login_form_path Elixir.Confex.get_env(:oauth2_provider, :html) |> Keyword.get(:login_form)
+  @login_http_response Elixir.Confex.get_env(:oauth2_provider, :init_login, &Oauth2Provider.HTTP.TokenController.login_html_template/2)
 
-  EEx.function_from_file(:defp, :render_login_form, @login_form_path, [
-    :login_url
-  ])
+  if not is_nil(Elixir.Confex.get_env(:oauth2_provider, :html) |> Keyword.get(:login_form)) do
+    @login_form_path Elixir.Confex.get_env(:oauth2_provider, :html) |> Keyword.get(:login_form)
 
-  def login(conn, _params) do
-    conn
-    |> put_resp_content_type("text/html; charset=utf8")
-    |> send_resp(200, render_login_form(request_url(conn)))
+    EEx.function_from_file(:defp, :render_login_form, @login_form_path, [
+      :login_url,
+      :params
+    ])
+
+    def login_html_template(conn, params) do
+      conn
+      |> put_resp_content_type("text/html; charset=utf8")
+      |> send_resp(200, render_login_form(request_url(conn), params))
+    end
+  end
+
+  def login(conn, params) do
+    @login_http_response.(conn, params)
   end
 
   def create(conn, params) do

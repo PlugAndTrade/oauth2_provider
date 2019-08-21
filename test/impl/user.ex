@@ -33,4 +33,10 @@ defmodule Oauth2Provider.Test.User do
 
     def sub(%Oauth2Provider.Test.User{id: id}), do: {:ok, id}
   end
+
+  def init_login(conn, params) do
+      conn
+      |> Plug.Conn.put_resp_content_type("text/plain")
+      |> Plug.Conn.send_resp(:ok, "OK")
+  end
 end

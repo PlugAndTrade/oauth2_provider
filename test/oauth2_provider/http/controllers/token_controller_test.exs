@@ -8,6 +8,16 @@ defmodule Oauth2Provider.HTTP.TokenControllerTest do
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(Oauth2Provider.Repo)
   end
 
+  test "get init login response" do
+    conn =
+      conn(:get, "/token")
+      |> Oauth2Provider.HTTP.Router.call([])
+
+    assert 200 == conn.status
+    assert ["text/plain" <> _charset] = get_resp_header(conn, "content-type")
+    assert {_status, _headers, "OK"} = sent_resp(conn)
+  end
+
   test "create app access token" do
     secret = :crypto.strong_rand_bytes(24) |> Base.url_encode64()
     {:ok, %{id: client_id, redirect_uris: [redirect_uri | _]}} = create_client(secret)
