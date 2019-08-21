@@ -14,7 +14,7 @@ defmodule Oauth2Provider.HTTP.AppControllerTest do
     {:ok, user} = Oauth2Provider.Test.User.new()
 
     conn =
-      conn(:post, "/apps", %{"client_id" => client_id, "scopes" => ["a", "b"]})
+      conn(:post, "/apps", %{"client_id" => client_id, "scopes" => ["openid", "a", "b"]})
       |> Oauth2Provider.Guardian.Plug.sign_in(
         user,
         %{"subType" => "user"}
@@ -29,7 +29,7 @@ defmodule Oauth2Provider.HTTP.AppControllerTest do
     assert %{
              "client_id" => ^client_id,
              "name" => "test_client",
-             "scopes" => ["a", "b"],
+             "scopes" => ["openid", "a", "b"],
              "user_id" => ^user_id,
              "id" => _
            } = data
@@ -43,7 +43,7 @@ defmodule Oauth2Provider.HTTP.AppControllerTest do
     params = %{
       "verify_url" => "http://verify_url/verify?client_id=asdf",
       "client_id" => client_id,
-      "scopes" => ["a", "b"]
+      "scopes" => ["openid", "a", "b"]
     }
 
     {:ok, user} = Oauth2Provider.Test.User.new()
@@ -66,7 +66,7 @@ defmodule Oauth2Provider.HTTP.AppControllerTest do
     params = %{
       "verify_url" => "http://verify_url/verify?client_id=asdf",
       "client_id" => client_id,
-      "scopes" => ["a", "b"]
+      "scope" => "a b"
     }
 
     conn =
@@ -86,7 +86,7 @@ defmodule Oauth2Provider.HTTP.AppControllerTest do
 
     params = %{
       "client_id" => client_id,
-      "scopes" => ["a", "b"],
+      "scope" => "openid a b",
       "redirect_uri" => "http://test_client/callback",
       "state" => "asdf",
       "response_type" => "code"
@@ -117,7 +117,7 @@ defmodule Oauth2Provider.HTTP.AppControllerTest do
 
     params = %{
       "client_id" => client_id,
-      "scopes" => ["a", "b"],
+      "scope" => "a b",
       "redirect_uri" => "http://test_client/callback",
       "state" => "asdf",
       "response_type" => "code"

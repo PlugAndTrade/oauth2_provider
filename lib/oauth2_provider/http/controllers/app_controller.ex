@@ -76,6 +76,9 @@ defmodule Oauth2Provider.HTTP.AppController do
       %{params: nil, errors: errors} ->
         conn |> json(400, %{errors: errors})
 
+      %{scopes_valid?: false, errors: errors} ->
+        conn |> json(400, %{errors: errors})
+
       %{client: nil, errors: errors} ->
         conn |> json(404, %{errors: errors})
 
@@ -127,14 +130,14 @@ defmodule Oauth2Provider.HTTP.AppController do
 
   defp validate_verify_params(res, %{
          "client_id" => client_id,
-         "scopes" => scopes,
+         "scope" => scopes,
          "state" => state,
          "response_type" => "code",
          "redirect_uri" => redirect_uri
        }) do
     Map.put(res, :params, %{
       client_id: client_id,
-      scopes: scopes,
+      scopes: String.split(scopes, " "),
       state: state,
       redirect_uri: redirect_uri
     })
@@ -166,7 +169,7 @@ defmodule Oauth2Provider.HTTP.AppController do
   defp verify_scopes(
          %{params: %{scopes: request_scopes}, app: %{scopes: authorized_scopes}} = state
        ) do
-    if Enum.all?(request_scopes, fn s -> Enum.any?(authorized_scopes, &(&1 == s)) end) do
+    if "openid" in request_scopes and Enum.all?(request_scopes, fn s -> Enum.any?(authorized_scopes, &(&1 == s)) end) do
       Map.put(state, :scopes_valid?, true)
     else
       state
@@ -231,18 +234,25 @@ defmodule Oauth2Provider.HTTP.AppController do
 
   defp get_client(state), do: state
 
-  defp validate_create_params(state, %{"client_id" => _, "scopes" => _} = params) do
+  defp validate_create_params(state, %{"client_id" => _, "scopes" => scopes} = params) do
     params =
       params
       |> Map.take(["client_id", "scopes", "verify_url"])
       |> Enum.reduce(%{}, fn {k, v}, p -> Map.put(p, String.to_existing_atom(k), v) end)
 
-    Map.put(state, :params, params)
+    if "openid" in scopes do
+      Map.put(state, :params, params)
+    else
+      state
+      |> append_error(%{message: "Invalid parametes", code: "ERR_BAD_REQUEST"})
+      |> Map.put(:params, nil)
+    end
+
   end
 
   defp validate_create_params(state, _) do
     state
     |> append_error(%{message: "Invalid parametes", code: "ERR_BAD_REQUEST"})
-    |> Map.put(:client, nil)
+    |> Map.put(:params, nil)
   end
 end

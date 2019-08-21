@@ -20,7 +20,7 @@ defmodule Oauth2Provider.Test.Helpers.DBHelper do
       client_id: client_id,
       name: "test_client",
       user_id: user_id,
-      scopes: ["a", "b"]
+      scopes: ["openid", "a", "b"]
     }
     |> Oauth2Provider.App.changeset()
     |> Oauth2Provider.Repo.insert()
