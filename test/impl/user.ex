@@ -6,6 +6,7 @@ defmodule Oauth2Provider.Test.User do
           username: String.t()
         }
 
+  @derive Jason.Encoder
   defstruct [:id, :username]
 
   def new(),

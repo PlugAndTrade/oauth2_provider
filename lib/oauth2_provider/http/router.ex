@@ -12,7 +12,7 @@ defmodule Oauth2Provider.HTTP.Router do
   plug(Plug.Parsers,
     parsers: [:json, :urlencoded],
     pass: ["application/json", "application/x-www-form-urlencoded"],
-    json_decoder: Poison
+    json_decoder: Jason
   )
 
   plug(Plug.Session,

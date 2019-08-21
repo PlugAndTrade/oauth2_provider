@@ -11,7 +11,7 @@ defmodule Oauth2Provider.HTTP.Controller do
     do:
       conn
       |> Plug.Conn.put_resp_content_type("application/json")
-      |> Plug.Conn.send_resp(status, Poison.encode!(data))
+      |> Plug.Conn.send_resp(status, Jason.encode!(data))
 
   def add_query_params(%URI{query: nil} = uri, params),
     do: URI.to_string(%{uri | query: URI.encode_query(params)})

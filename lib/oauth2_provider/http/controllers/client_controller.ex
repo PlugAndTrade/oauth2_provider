@@ -7,7 +7,7 @@ defmodule Oauth2Provider.HTTP.ClientController do
          changeset <-
            Oauth2Provider.Client.changeset(Map.merge(create_params, %{secret: secret_hash})),
          {:ok, client} <- Oauth2Provider.Repo.insert(changeset) do
-      Plug.Conn.send_resp(conn, 200, Poison.encode!(%{client | secret: secret}))
+      Plug.Conn.send_resp(conn, 200, Jason.encode!(%{client | secret: secret}))
     else
       {:error, err} ->
         Logger.error(inspect(err))
