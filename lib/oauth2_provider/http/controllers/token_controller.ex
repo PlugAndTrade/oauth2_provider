@@ -27,8 +27,15 @@ defmodule Oauth2Provider.HTTP.TokenController do
   def create(conn, params) do
     with {:ok, %{type: type}} <- validate(params),
          {:ok, resource} <- Oauth2Provider.Authenticatable.find_and_verify(type, params) do
+      {:ok, secret} = Oauth2Provider.Guardian.DynamicSecretFetcher.fetch_signing_secret(__MODULE__, [])
       conn =
-        sign_in(conn, resource, Oauth2Provider.Authenticatable.claims_from_resource(resource))
+        sign_in(
+          conn,
+          resource,
+          Oauth2Provider.Authenticatable.claims_from_resource(resource),
+          secret: secret,
+          headers: Oauth2Provider.Guardian.DynamicSecretFetcher.jwt_key_headers(secret)
+        )
 
       case params do
         %{"redirect_to" => redirect_to} ->

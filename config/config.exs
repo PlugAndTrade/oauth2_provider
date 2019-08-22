@@ -22,6 +22,7 @@ use Mix.Config
 #
 
 config :oauth2_provider,
+  pki_url: "http://localhost:4000/pki",
   session: [
     key: "oauth2_provider",
     table: :session
@@ -50,8 +51,10 @@ config :oauth2_provider, Oauth2Provider.Repo,
   port: "5432"
 
 config :oauth2_provider, Oauth2Provider.Guardian,
+  allowed_algos: ["RS256"],
   issuer: "oauth2_provider",
-  secret_key: "some_secret"
+  ttl: {1, :weeks},
+  secret_fetcher: Oauth2Provider.Guardian.DynamicSecretFetcher
 
 # It is also possible to import configuration files, relative to this
 # directory. For example, you can emulate configuration per environment
