@@ -4,6 +4,7 @@ defmodule Oauth2Provider.HTTP.TokenRoutes do
     module: Oauth2Provider.HTTP.TokenController,
     routes: [
       {:get, "", :login},
+      {:get, "current", :current},
       {:post, ":type", :create},
       {:get, ":type/callback", :create},
     ]

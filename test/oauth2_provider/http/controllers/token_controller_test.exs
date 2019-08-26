@@ -47,7 +47,11 @@ defmodule Oauth2Provider.HTTP.TokenControllerTest do
 
     assert 201 == conn.status
     data = sent_json_resp(conn)
-    assert %{"access_token" => jwt} = data
+    assert %{
+      "access_token" => jwt,
+      "token_type" => "Bearer",
+      "expires_in" => ttl
+    } = data
   end
 
   test "create app access token bad secret" do
@@ -127,7 +131,11 @@ defmodule Oauth2Provider.HTTP.TokenControllerTest do
       |> Oauth2Provider.HTTP.Router.call([])
 
     assert 201 == conn.status
-    assert %{"access_token" => token} = sent_json_resp(conn)
+    assert %{
+      "access_token" => jwt,
+      "token_type" => "Bearer",
+      "expires_in" => ttl
+    } = sent_json_resp(conn)
   end
 
   test "create admin token disallow emtpy password" do
@@ -139,5 +147,24 @@ defmodule Oauth2Provider.HTTP.TokenControllerTest do
 
     assert 401 == conn.status
     assert %{"errors" => [_]} = sent_json_resp(conn)
+  end
+
+  test "get current access token" do
+    {:ok, user} = Oauth2Provider.Test.User.new()
+
+    conn =
+      conn(:get, "/token/current")
+      |> Oauth2Provider.Guardian.Plug.sign_in(
+        user,
+        Oauth2Provider.Authenticatable.claims_from_resource(user)
+      )
+      |> Oauth2Provider.HTTP.Router.call([])
+
+    assert 200 == conn.status
+    assert %{
+      "access_token" => jwt,
+      "token_type" => "Bearer",
+      "expires_in" => ttl
+    } = sent_json_resp(conn)
   end
 end

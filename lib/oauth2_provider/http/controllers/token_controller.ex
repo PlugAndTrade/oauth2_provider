@@ -44,10 +44,16 @@ defmodule Oauth2Provider.HTTP.TokenController do
           |> send_resp(302, "")
 
         _ ->
+          %{"exp" => exp} = current_claims(conn)
+          ttl = exp - :os.system_time(:seconds)
           json(
             conn,
             201,
-            %{access_token: current_token(conn)}
+            %{
+              "access_token" => current_token(conn),
+              "token_type" => "Bearer",
+              "expires_in" => ttl,
+            }
           )
       end
     else
@@ -65,6 +71,29 @@ defmodule Oauth2Provider.HTTP.TokenController do
           conn,
           500,
           %{errors: [%{message: "Unknown error", code: "ERR_UNKNOWN_ERROR"}]}
+        )
+    end
+  end
+
+  def current(conn, _params) do
+    case authenticated?(conn) do
+      true ->
+        %{"exp" => exp} = current_claims(conn)
+        ttl = exp - :os.system_time(:seconds)
+        json(
+          conn,
+          200,
+          %{
+            "access_token" => current_token(conn),
+            "token_type" => "Bearer",
+            "expires_in" => ttl,
+          }
+        )
+      false ->
+        json(
+          conn,
+          401,
+          %{errors: [%{code: "ERR_NOT_AUTHENTICATED", message: "Must be authenticated to retreive token data."}]}
         )
     end
   end
