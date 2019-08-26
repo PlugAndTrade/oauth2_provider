@@ -38,6 +38,8 @@ defmodule Oauth2Provider.Authenticatable do
     end
   end
 
+  def get_type_from_impl(%impl{}), do: get_type_from_impl(impl)
+
   def get_type_from_impl(impl) do
     case Enum.find_value(@autheticatables, nil, fn {type, mod} -> if mod == impl, do: type, else: nil end) do
       nil -> {:error, %{message: "Unknown resource type", code: "ERR_AUTH_UNKOWN_RESOURCE_TYPE"}}
