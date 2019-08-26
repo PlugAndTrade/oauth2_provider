@@ -4,6 +4,8 @@ defmodule Oauth2Provider.Client do
 
   @repo Oauth2Provider.Repo
 
+  @derive {Jason.Encoder, only: [:id, :name, :redirect_uris]}
+
   @primary_key {:id, :string, []}
   schema "clients" do
     field(:name, :string)

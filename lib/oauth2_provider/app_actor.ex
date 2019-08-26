@@ -50,6 +50,9 @@ defmodule Oauth2Provider.AppActor do
   def find_and_verify(_),
     do: {:error, %{message: "Authentication failed", code: "ERR_UNAUTHORIZED"}}
 
+  @impl Oauth2Provider.Authenticatable
+  def is_admin?(_), do: false
+
   defp verify(
          %{client_id: client_id},
          %{id: client_id, secret: client_secret_hash, redirect_uris: redirect_uris},

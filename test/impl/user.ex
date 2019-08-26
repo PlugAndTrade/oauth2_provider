@@ -36,4 +36,7 @@ defmodule Oauth2Provider.Test.User do
       |> Plug.Conn.put_resp_content_type("text/plain")
       |> Plug.Conn.send_resp(:ok, "OK")
   end
+
+  @impl Oauth2Provider.Authenticatable
+  def is_admin?(_), do: false
 end

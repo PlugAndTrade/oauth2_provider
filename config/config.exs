@@ -34,10 +34,14 @@ config :oauth2_provider,
     login_form: "./test/impl/templates/login_form.html"
   ]
 
+config :oauth2_provider, Oauth2Provider.SingletonAdmin,
+  password: ""
+
 config :oauth2_provider, Oauth2Provider.Authenticatable,
   [
     modules: %{
       "user" => Oauth2Provider.Test.User,
+      "admin" => Oauth2Provider.SingletonAdmin,
       "app" => Oauth2Provider.AppActor
     }
   ]

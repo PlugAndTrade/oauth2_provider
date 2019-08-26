@@ -117,4 +117,27 @@ defmodule Oauth2Provider.HTTP.TokenControllerTest do
     assert %{"errors" => [%{"message" => "Authentication failed", "code" => "ERR_UNAUTHORIZED"}]} ==
              data
   end
+
+  test "create admin token" do
+    pwd = :crypto.strong_rand_bytes(24) |> Base.url_encode64()
+    Application.put_env(:oauth2_provider, Oauth2Provider.SingletonAdmin, [password: pwd])
+
+    conn =
+      conn(:post, "/token/admin", %{"username" => "admin", "password" => pwd})
+      |> Oauth2Provider.HTTP.Router.call([])
+
+    assert 201 == conn.status
+    assert %{"access_token" => token} = sent_json_resp(conn)
+  end
+
+  test "create admin token disallow emtpy password" do
+    Application.put_env(:oauth2_provider, Oauth2Provider.SingletonAdmin, [password: ""])
+
+    conn =
+      conn(:post, "/token/admin", %{"username" => "admin", "password" => ""})
+      |> Oauth2Provider.HTTP.Router.call([])
+
+    assert 401 == conn.status
+    assert %{"errors" => [_]} = sent_json_resp(conn)
+  end
 end

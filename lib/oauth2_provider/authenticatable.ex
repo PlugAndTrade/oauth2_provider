@@ -1,4 +1,5 @@
 defmodule Oauth2Provider.Authenticatable do
+  @callback is_admin?(map()) :: bool()
   @callback find_by_claims(map()) :: {:ok, term()} | {:error, map()}
   @callback find_and_verify(map()) :: {:ok, term(), term()} | {:error, map()}
 
@@ -36,6 +37,8 @@ defmodule Oauth2Provider.Authenticatable do
       err -> err
     end
   end
+
+  def is_admin?(%impl{} = res), do: impl.is_admin?(res)
 
   def get_type_from_impl(%impl{}), do: get_type_from_impl(impl)
 

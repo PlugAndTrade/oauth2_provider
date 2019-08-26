@@ -1,21 +1,42 @@
 defmodule Oauth2Provider.HTTP.ClientController do
-  require Logger
+  use Oauth2Provider.HTTP.Controller
+  import Oauth2Provider.Guardian.Plug
 
   def create(conn, params) do
-    with create_params <- validate_create(params),
+    with :ok <- verify_admin(conn),
+         create_params <- validate_create(params),
          {secret, secret_hash} <- generate_secret(),
          changeset <-
            Oauth2Provider.Client.changeset(Map.merge(create_params, %{secret: secret_hash})),
          {:ok, client} <- Oauth2Provider.Repo.insert(changeset) do
-      Plug.Conn.send_resp(conn, 200, Jason.encode!(%{client | secret: secret}))
+           data = client
+                  |> Map.from_struct()
+                  |> Map.take([:id, :name, :redirect_uris])
+                  |> Map.merge(%{secret: secret})
+           json(conn, 201, data)
     else
       {:error, err} ->
-        Logger.error(inspect(err))
-        Plug.Conn.send_resp(conn, 400, "Error")
+        json(conn, 400, %{errors: [err]})
+
+      :forbidden ->
+        json(conn, 403, %{errors: [%{
+          code: "ERR_NOT_ADMIN",
+          message: "Only administrators may create new clients"}]
+        })
 
       err ->
         Logger.error(inspect(err))
-        Plug.Conn.send_resp(conn, 400, "Error")
+        json(conn, 500, %{errors: [%{
+          code: "ERR_INTENAL_ERROR",
+          message: "Unknown error"
+        }]})
+    end
+  end
+
+  def verify_admin(conn) do
+    case current_resource(conn) |> Oauth2Provider.Authenticatable.is_admin?() do
+      true -> :ok
+      false -> :forbidden
     end
   end
 
@@ -25,7 +46,7 @@ defmodule Oauth2Provider.HTTP.ClientController do
     {secret, secret_hash}
   end
 
-  def validate_create(%{"name" => name, "redirectURIs" => redirect_uris}) do
+  def validate_create(%{"name" => name, "redirect_uris" => redirect_uris}) do
     %{name: name, redirect_uris: redirect_uris}
   end
 end
