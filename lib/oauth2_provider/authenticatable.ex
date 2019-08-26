@@ -31,7 +31,9 @@ defmodule Oauth2Provider.Authenticatable do
 
   def claims_from_resource(%impl{} = res) do
     case get_type_from_impl(impl) do
-      {:ok, type} -> Map.merge(TokenResource.claims(res), %{"subType" => type})
+      {:ok, type} ->
+        {:ok, sub} = TokenResource.sub(res)
+        Map.merge(TokenResource.claims(res), %{"subType" => type, "sub" => sub})
       err -> err
     end
   end
