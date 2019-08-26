@@ -14,10 +14,9 @@ defmodule Oauth2Provider.AppActor do
     %__MODULE__{id: id, app: app, client: client, user: user}
   end
 
-  # TODO user_id and claims["sub"] should match
-  def find_by_id(id, resource_claims) do
-    with {:ok, %{user_id: _user_id, client_id: client_id} = app} <-
-           Oauth2Provider.Repo.fetch(Oauth2Provider.App, id),
+  def find_by_id(id, %{"sub" => resource_sub} = resource_claims) do
+    with {:ok, %{client_id: client_id} = app} <-
+           Oauth2Provider.Repo.search_one(Oauth2Provider.App, id: id, user_id: resource_sub),
          {:ok, client} <- Oauth2Provider.Repo.fetch(Oauth2Provider.Client, client_id),
          {:ok, resource} <- Oauth2Provider.Authenticatable.find_by_claims(resource_claims) do
       {:ok, new(app, client, resource)}
