@@ -5,17 +5,16 @@ defmodule Oauth2Provider.HTTP.UserController do
   def get(conn, _params) do
     actor = current_resource(conn)
 
-    case get_user(actor) do
-      {:ok, user} -> json(conn, 200, user)
+    case get_user(conn, actor) do
       {:error, error} -> json(conn, 400, error)
+      user -> json(conn, 200, user)
     end
   end
 
-  defp get_user(%Oauth2Provider.AppActor{user: user}) do
-    {:ok, user}
-  end
+  defp get_user(_conn, %Oauth2Provider.AppActor{user: resource}),
+    do: Oauth2Provider.Authenticatable.claims_from_resource(resource)
 
-  defp get_user(_) do
-    {:error, %{code: "ERR_UNAUTHORIZED", message: "Not authorized"}}
-  end
+  defp get_user(conn, resource),
+    do: Oauth2Provider.Authenticatable.claims_from_resource(resource)
+    |> Map.merge(%{"access_token" => current_token(conn)})
 end

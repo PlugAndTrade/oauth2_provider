@@ -41,7 +41,8 @@ defmodule Oauth2Provider.HTTP.UserControllerTest do
     data = sent_json_resp(conn)
 
     assert %{
-             "id" => user.id,
+             "sub" => user.id,
+             "subType" => "user",
              "username" => user.username
            } == data
   end
