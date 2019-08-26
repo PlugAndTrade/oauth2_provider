@@ -10,19 +10,15 @@ defmodule Oauth2Provider.Test.User do
   defstruct [:id, :username]
 
   def new(),
-    do: find_by_id(UUID.uuid4())
+    do: {:ok, %__MODULE__{id: UUID.uuid4(), username: "test"}}
 
   @impl Oauth2Provider.Authenticatable
-  def find_by_id(id),
+  def find_by_claims(%{"sub" => id}),
     do: {:ok, %__MODULE__{id: id, username: "test"}}
 
   @impl Oauth2Provider.Authenticatable
-  def find_by_subject(id),
-    do: find_by_id(id)
-
-  @impl Oauth2Provider.Authenticatable
-  def find_and_verify(%{"username" => "test"}),
-    do: find_by_id(UUID.uuid4())
+  def find_and_verify(%{"username" => "test"} = params),
+    do: {:ok, %__MODULE__{id: UUID.uuid4(), username: "test"}, Map.drop(params, ["username"])}
 
   @impl Oauth2Provider.Authenticatable
   def find_and_verify(_),
@@ -30,12 +26,12 @@ defmodule Oauth2Provider.Test.User do
 
   defimpl Oauth2Provider.Authenticatable.TokenResource do
     def claims(%Oauth2Provider.Test.User{username: username}),
-      do: %{username: username}
+      do: %{"username" => username}
 
     def sub(%Oauth2Provider.Test.User{id: id}), do: {:ok, id}
   end
 
-  def init_login(conn, params) do
+  def init_login(conn, _params) do
       conn
       |> Plug.Conn.put_resp_content_type("text/plain")
       |> Plug.Conn.send_resp(:ok, "OK")

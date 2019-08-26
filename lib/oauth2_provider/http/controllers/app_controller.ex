@@ -17,7 +17,7 @@ defmodule Oauth2Provider.HTTP.AppController do
     res =
       %{error?: false, errors: []}
       |> validate_create_params(params)
-      |> get_user_id(conn)
+      |> get_resource(conn)
       |> get_client()
       |> create_changeset()
       |> insert_app()
@@ -49,7 +49,7 @@ defmodule Oauth2Provider.HTTP.AppController do
     res =
       %{error?: false, errors: []}
       |> validate_verify_params(params)
-      |> get_user_id(conn)
+      |> get_resource(conn)
       |> get_client()
       |> verify_redirect_uri()
       |> get_app()
@@ -107,8 +107,8 @@ defmodule Oauth2Provider.HTTP.AppController do
       |> Map.update!(:errors, &[err | &1])
       |> Map.put(:error?, true)
 
-  defp generate_token(%{app: %{id: app_id}} = state) do
-    token = Oauth2Provider.Token.new(app_id: app_id)
+  defp generate_token(%{app: %{id: app_id}, resource: resource_claims} = state) do
+    token = Oauth2Provider.Token.new(app_id: app_id, resource_claims: resource_claims)
     Oauth2Provider.Token.Registry.put(:token_registry, token)
     Map.put(state, :token, token)
   end
@@ -149,18 +149,18 @@ defmodule Oauth2Provider.HTTP.AppController do
     |> Map.put(:params, nil)
   end
 
-  defp get_user_id(state, conn) do
+  defp get_resource(state, conn) do
     case current_resource(conn) do
       nil -> append_error(state, %{message: "Not logged in", code: "ERR_UNAUTHORIZED"})
-      %{id: id} -> Map.put(state, :user_id, id)
+      resource -> Map.put(state, :resource, Oauth2Provider.Authenticatable.claims_from_resource(resource))
     end
   end
 
-  defp get_app(%{params: %{client_id: client_id}, user_id: user_id, error?: false} = state) do
+  defp get_app(%{params: %{client_id: client_id}, resource: %{"sub" => sub}, error?: false} = state) do
     Map.put(
       state,
       :app,
-      Oauth2Provider.Repo.get_by(Oauth2Provider.App, client_id: client_id, user_id: user_id)
+      Oauth2Provider.Repo.get_by(Oauth2Provider.App, client_id: client_id, user_id: sub)
     )
   end
 
@@ -183,12 +183,12 @@ defmodule Oauth2Provider.HTTP.AppController do
   defp create_changeset(
          %{
            params: %{scopes: scopes},
-           user_id: user_id,
+           resource: %{"sub" => sub},
            client: %{id: client_id, name: client_name}
          } = state
        ) do
     case Oauth2Provider.App.changeset(%{
-           user_id: user_id,
+           user_id: sub,
            client_id: client_id,
            name: client_name,
            scopes: scopes

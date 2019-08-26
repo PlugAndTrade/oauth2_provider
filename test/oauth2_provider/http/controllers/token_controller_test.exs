@@ -22,11 +22,14 @@ defmodule Oauth2Provider.HTTP.TokenControllerTest do
     secret = :crypto.strong_rand_bytes(24) |> Base.url_encode64()
     {:ok, %{id: client_id, redirect_uris: [redirect_uri | _]}} = create_client(secret)
 
-    {:ok, %{id: user_id}} = Oauth2Provider.Test.User.new()
+    {:ok, %{id: user_id} = user} = Oauth2Provider.Test.User.new()
 
     {:ok, %{id: app_id}} = create_app(client_id, user_id)
 
-    %{id: code} = token = Oauth2Provider.Token.new(app_id: app_id)
+    %{id: code} = token = Oauth2Provider.Token.new(
+      app_id: app_id,
+      resource_claims: Oauth2Provider.Authenticatable.claims_from_resource(user)
+    )
     Oauth2Provider.Token.Registry.put(:token_registry, token)
 
     params = %{
@@ -51,11 +54,14 @@ defmodule Oauth2Provider.HTTP.TokenControllerTest do
     secret = :crypto.strong_rand_bytes(24) |> Base.url_encode64()
     {:ok, %{id: client_id, redirect_uris: [redirect_uri | _]}} = create_client(secret)
 
-    {:ok, %{id: user_id}} = Oauth2Provider.Test.User.new()
+    {:ok, %{id: user_id} = user} = Oauth2Provider.Test.User.new()
 
     {:ok, %{id: app_id}} = create_app(client_id, user_id)
 
-    %{id: code} = token = Oauth2Provider.Token.new(app_id: app_id)
+    %{id: code} = token = Oauth2Provider.Token.new(
+      app_id: app_id,
+      resource_claims: Oauth2Provider.Authenticatable.claims_from_resource(user)
+    )
     Oauth2Provider.Token.Registry.put(:token_registry, token)
 
     params = %{
@@ -82,11 +88,14 @@ defmodule Oauth2Provider.HTTP.TokenControllerTest do
     secret = :crypto.strong_rand_bytes(24) |> Base.url_encode64()
     {:ok, %{id: client_id}} = create_client(secret)
 
-    {:ok, %{id: user_id}} = Oauth2Provider.Test.User.new()
+    {:ok, %{id: user_id} = user} = Oauth2Provider.Test.User.new()
 
     {:ok, %{id: app_id}} = create_app(client_id, user_id)
 
-    %{id: code} = token = Oauth2Provider.Token.new(app_id: app_id)
+    %{id: code} = token = Oauth2Provider.Token.new(
+      app_id: app_id,
+      resource_claims: Oauth2Provider.Authenticatable.claims_from_resource(user)
+    )
     Oauth2Provider.Token.Registry.put(:token_registry, token)
 
     params = %{

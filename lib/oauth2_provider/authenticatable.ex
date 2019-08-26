@@ -1,7 +1,6 @@
 defmodule Oauth2Provider.Authenticatable do
-  @callback find_by_subject(String.t()) :: {:ok, term()}
-  @callback find_by_id(String.t()) :: {:ok, term()}
-  @callback find_and_verify(map()) :: {:ok, term()}
+  @callback find_by_claims(map()) :: {:ok, term()} | {:error, map()}
+  @callback find_and_verify(map()) :: {:ok, term(), term()} | {:error, map()}
 
   @autheticatables Application.get_env(:oauth2_provider, __MODULE__) |> Keyword.fetch!(:modules)
 
@@ -15,9 +14,9 @@ defmodule Oauth2Provider.Authenticatable do
     def sub(resource)
   end
 
-  def find_by_id(type, id) do
+  def find_by_claims(%{"subType" => type} = claims) do
     case get_impl_from_type(type) do
-      {:ok, impl} -> impl.find_by_id(id)
+      {:ok, impl} -> impl.find_by_claims(claims)
       err -> err
     end
   end

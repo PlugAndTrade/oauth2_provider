@@ -7,28 +7,28 @@ defmodule Oauth2Provider.AppActor do
           client: Oauth2.Client.t(),
           user: map()
         }
-  defstruct [:id, :app, :client, :user]
 
-  @user_type "user"
+  defstruct [:id, :app, :client, :user]
 
   def new(%{id: id} = app, client, user) do
     %__MODULE__{id: id, app: app, client: client, user: user}
   end
 
-  @impl Oauth2Provider.Authenticatable
-  def find_by_id(id) do
-    with {:ok, %{user_id: user_id, client_id: client_id} = app} <-
+  # TODO user_id and claims["sub"] should match
+  def find_by_id(id, resource_claims) do
+    with {:ok, %{user_id: _user_id, client_id: client_id} = app} <-
            Oauth2Provider.Repo.fetch(Oauth2Provider.App, id),
          {:ok, client} <- Oauth2Provider.Repo.fetch(Oauth2Provider.Client, client_id),
-         {:ok, user} <- Oauth2Provider.Authenticatable.find_by_id(@user_type, user_id) do
-      {:ok, new(app, client, user)}
+         {:ok, resource} <- Oauth2Provider.Authenticatable.find_by_claims(resource_claims) do
+      {:ok, new(app, client, resource)}
     else
       err -> err
     end
   end
 
   @impl Oauth2Provider.Authenticatable
-  def find_by_subject(id), do: find_by_id(id)
+  def find_by_claims(%{"sub" => id, "resource" => claims}),
+    do: find_by_id(id, claims)
 
   @impl Oauth2Provider.Authenticatable
   def find_and_verify(%{
@@ -37,11 +37,11 @@ defmodule Oauth2Provider.AppActor do
         "client_id" => client_id,
         "client_secret" => client_secret,
         "redirect_uri" => redirect_uri
-      }) do
-    with {:ok, %{app_id: app_id}} <- Oauth2Provider.Token.Registry.pop(:token_registry, token),
-         {:ok, %{client: client, app: app} = app_actor} <- find_by_subject(app_id),
+      } = params) do
+    with {:ok, %{app_id: app_id, resource_claims: claims}} <- Oauth2Provider.Token.Registry.pop(:token_registry, token),
+         {:ok, %{client: client, app: app} = app_actor} <- find_by_id(app_id, claims),
          :ok <- verify(app, client, client_id, client_secret, redirect_uri) do
-      {:ok, app_actor}
+      {:ok, app_actor, Map.drop(params, ["grant_type", "code", "client_id", "client_secret", "redirect_uri"])}
     else
       err -> err
     end
@@ -71,10 +71,14 @@ defmodule Oauth2Provider.AppActor do
   defimpl Oauth2Provider.Authenticatable.TokenResource do
     def claims(%Oauth2Provider.AppActor{
           client: %{id: client_id},
-          user: %{id: user_id},
+          user: user,
           app: %{scopes: scopes}
         }),
-        do: %{client_id: client_id, user_id: user_id, oauth2_scopes: scopes}
+        do: %{
+          "clientId" => client_id,
+          "resource" => Oauth2Provider.Authenticatable.claims_from_resource(user),
+          "scopes" => scopes
+        }
 
     def sub(%Oauth2Provider.AppActor{id: id}), do: {:ok, id}
   end
