@@ -88,7 +88,7 @@ defmodule Oauth2Provider.HTTP.AppController do
         |> send_resp(
           200,
           render_authorize_form(
-            "/apps",
+            "#{Confex.fetch_env!(:oauth2_provider, :path_prefix)}/apps",
             request_url(conn),
             client_id,
             scopes

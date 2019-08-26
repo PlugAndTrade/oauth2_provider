@@ -22,6 +22,7 @@ use Mix.Config
 #
 
 config :oauth2_provider,
+  path_prefix: {:system, "OAUTH2_PATH_PREFIX", ""},
   pki_url: "http://localhost:4000/pki",
   session: [
     key: "oauth2_provider",

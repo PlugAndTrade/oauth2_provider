@@ -16,7 +16,7 @@ defmodule Oauth2Provider.Guardian.ErrorHandler do
     conn
     |> put_resp_header(
       "location",
-      "/token?redirect_to=#{URI.encode_www_form(request_url(conn))}"
+      "#{Confex.fetch_env!(:oauth2_provider, :path_prefix)}/token?redirect_to=#{URI.encode_www_form(request_url(conn))}"
     )
     |> send_resp(302, "")
   end
