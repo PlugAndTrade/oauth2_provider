@@ -52,6 +52,7 @@ defmodule Oauth2Provider.HTTP.AppController do
       |> get_resource(conn)
       |> get_client()
       |> verify_redirect_uri()
+      |> verify_authorization_flow()
       |> get_app()
       |> verify_scopes()
       |> generate_token()
@@ -59,25 +60,12 @@ defmodule Oauth2Provider.HTTP.AppController do
     case res do
       %{
         redirect_uri_valid?: true,
-        scopes_valid?: true,
-        params: %{redirect_uri: redirect_uri, state: state},
-        token: %{id: token}
+        authorization_uri: uri,
+        scopes_valid?: true
       } ->
         conn
-        |> put_resp_header(
-          "location",
-          add_query_params(redirect_uri, %{"authorization_code" => token, "state" => state})
-        )
+        |> put_resp_header("location", uri)
         |> send_resp(302, "")
-
-      %{redirect_uri_valid?: false, errors: errors} ->
-        conn |> json(400, %{errors: errors})
-
-      %{params: nil, errors: errors} ->
-        conn |> json(400, %{errors: errors})
-
-      %{scopes_valid?: false, errors: errors} ->
-        conn |> json(400, %{errors: errors})
 
       %{client: nil, errors: errors} ->
         conn |> json(404, %{errors: errors})
@@ -96,8 +84,7 @@ defmodule Oauth2Provider.HTTP.AppController do
         )
 
       %{error?: true, errors: errors} ->
-        Logger.error(inspect(res))
-        conn |> json(500, %{errors: errors})
+        json(conn, 400, %{errors: errors})
     end
   end
 
@@ -107,10 +94,43 @@ defmodule Oauth2Provider.HTTP.AppController do
       |> Map.update!(:errors, &[err | &1])
       |> Map.put(:error?, true)
 
-  defp generate_token(%{app: %{id: app_id}, resource: resource_claims} = state) do
-    token = Oauth2Provider.Token.new(app_id: app_id, resource_claims: resource_claims)
+  defp generate_token(%{
+    app: %{id: app_id},
+    params: %{redirect_uri: redirect_uri, state: state},
+    resource: resource_claims,
+    authorization_flow: :code
+  } = res) do
+    %{id: token_id} = token = Oauth2Provider.Token.new(app_id: app_id, resource_claims: resource_claims)
     Oauth2Provider.Token.Registry.put(:token_registry, token)
-    Map.put(state, :token, token)
+
+    uri = add_query_params(redirect_uri, %{"authorization_code" => token_id, "state" => state})
+
+    Map.put(res, :authorization_uri, uri)
+  end
+
+  defp generate_token(%{
+    app: %{id: app_id},
+    resource: resource_claims,
+    params: %{redirect_uri: redirect_uri, state: state, nonce: nonce},
+    authorization_flow: :implicit
+  } = res) do
+    {:ok, secret} = Oauth2Provider.Guardian.DynamicSecretFetcher.fetch_signing_secret(:some_impl, [])
+    {:ok, app_actor} = Oauth2Provider.AppActor.find_by_id(app_id, resource_claims)
+    {:ok, token, %{"exp" => exp}} = Oauth2Provider.Guardian.encode_and_sign(
+      app_actor,
+      %{"nonce" => nonce},
+      secret: secret,
+      headers: Oauth2Provider.Guardian.DynamicSecretFetcher.jwt_key_headers(secret)
+    )
+
+    uri = add_query_params(redirect_uri, %{
+      "access_token" => token,
+      "token_type" => "Bearer",
+      "expires_in" => exp - :os.system_time(:seconds),
+      "state" => state
+    })
+
+    Map.put(res, :authorization_uri, uri)
   end
 
   defp generate_token(state), do: state
@@ -128,19 +148,74 @@ defmodule Oauth2Provider.HTTP.AppController do
 
   defp verify_redirect_uri(state), do: state
 
+  defp verify_authorization_flow(%{params: %{response_type: ["code"]}} = state),
+    do: Map.put(state, :authorization_flow, :code)
+
+  defp verify_authorization_flow(%{
+    client: %{allow_noauth: true},
+    params: %{response_type: response_type, nonce: nonce}
+  } = state) do
+    has_code = "code" in response_type
+    has_id = "id_token" in response_type
+    case {has_code, has_id, nonce} do
+      {false, _, nil} ->
+        state
+        |> append_error(%{
+          message: "nonce is required when not using response_type 'code'",
+          code: "ERR_BAD_REQUEST"
+        })
+        |> Map.put(:authorization_flow, nil)
+
+      {false, true, _} ->
+        Map.put(state, :authorization_flow, :implicit)
+
+      {true, true, _} ->
+        state
+        |> append_error(%{
+          message: "Hybird flow not supported",
+          code: "ERR_BAD_REQUEST"
+        })
+        |> Map.put(:authorization_flow, nil)
+
+      {_, _, _} ->
+        state
+        |> append_error(%{
+          message: "response_type must include either 'code' or 'id_token'",
+          code: "ERR_BAD_REQUEST"
+        })
+        |> Map.put(:authorization_flow, nil)
+    end
+  end
+
+  defp verify_authorization_flow(state),
+    do: state
+        |> append_error(%{
+          message: "Invalid request",
+          code: "ERR_BAD_REQUEST"
+        })
+        |> Map.put(:authorization_flow, nil)
+
   defp validate_verify_params(res, %{
          "client_id" => client_id,
          "scope" => scopes,
          "state" => state,
-         "response_type" => "code",
+         "response_type" => response_type,
          "redirect_uri" => redirect_uri
-       }) do
-    Map.put(res, :params, %{
-      client_id: client_id,
-      scopes: String.split(scopes, " "),
-      state: state,
-      redirect_uri: redirect_uri
-    })
+       } = params) do
+    case response_type |> String.split(" ") |> Enum.all?(&(&1 in ["code", "id_token", "token"])) do
+      true -> Map.put(res, :params, %{
+          client_id: client_id,
+          scopes: String.split(scopes, " "),
+          state: state,
+          redirect_uri: redirect_uri,
+          response_type: String.split(response_type, " "),
+          nonce: Map.get(params, "nonce")
+        })
+      false ->
+        res
+        |> append_error(%{message: "Invalid response_type", code: "ERR_BAD_REQUEST"})
+        |> Map.put(:params, nil)
+    end
   end
 
   defp validate_verify_params(state, _params) do

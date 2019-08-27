@@ -20,7 +20,7 @@ defmodule Oauth2Provider.HTTP.TokenControllerTest do
 
   test "create app access token" do
     secret = :crypto.strong_rand_bytes(24) |> Base.url_encode64()
-    {:ok, %{id: client_id, redirect_uris: [redirect_uri | _]}} = create_client(secret)
+    {:ok, %{id: client_id, redirect_uris: [redirect_uri | _]}} = create_client(secret: secret)
 
     {:ok, %{id: user_id} = user} = Oauth2Provider.Test.User.new()
 
@@ -69,7 +69,7 @@ defmodule Oauth2Provider.HTTP.TokenControllerTest do
 
   test "create app access token bad secret" do
     secret = :crypto.strong_rand_bytes(24) |> Base.url_encode64()
-    {:ok, %{id: client_id, redirect_uris: [redirect_uri | _]}} = create_client(secret)
+    {:ok, %{id: client_id, redirect_uris: [redirect_uri | _]}} = create_client(secret: secret)
 
     {:ok, %{id: user_id} = user} = Oauth2Provider.Test.User.new()
 
@@ -103,7 +103,7 @@ defmodule Oauth2Provider.HTTP.TokenControllerTest do
 
   test "create app access token incorrect redirect_uri" do
     secret = :crypto.strong_rand_bytes(24) |> Base.url_encode64()
-    {:ok, %{id: client_id}} = create_client(secret)
+    {:ok, %{id: client_id}} = create_client(secret: secret)
 
     {:ok, %{id: user_id} = user} = Oauth2Provider.Test.User.new()
 

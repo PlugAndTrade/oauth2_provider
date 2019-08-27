@@ -1,15 +1,14 @@
 defmodule Oauth2Provider.Test.Helpers.DBHelper do
-  def create_client(),
-    do: create_client(:crypto.strong_rand_bytes(24) |> Base.url_encode64())
-
-  def create_client(secret) do
+  def create_client(opts \\ []) do
     %{
       name: "test_client",
       redirect_uris: ["http://test_client/callback"],
       secret:
-        secret
+        opts
+        |> Keyword.get(:secret, :crypto.strong_rand_bytes(24) |> Base.url_encode64())
         |> Crypto.create_hash()
-        |> Base.encode64()
+        |> Base.encode64(),
+      allow_noauth: Keyword.get(opts, :allow_noauth, false)
     }
     |> Oauth2Provider.Client.changeset()
     |> Oauth2Provider.Repo.insert()
