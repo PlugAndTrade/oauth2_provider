@@ -26,8 +26,18 @@ defmodule Oauth2Provider.AppActor do
   end
 
   @impl Oauth2Provider.Authenticatable
-  def find_by_claims(%{"sub" => id, "resource" => claims}),
-    do: find_by_id(id, claims)
+  def find_by_claims(%{"client_id" => client_id, "sub" => res_id, "res_type" => res_type} = claims) do
+    with {:ok, app} <-
+           Oauth2Provider.Repo.search_one(Oauth2Provider.App, client_id: client_id, user_id: res_id),
+         {:ok, client} <-
+           Oauth2Provider.Repo.fetch(Oauth2Provider.Client, client_id),
+         {:ok, resource} <-
+           Oauth2Provider.Authenticatable.find_by_claims(Map.put(claims, "sub_type", res_type)) do
+      {:ok, new(app, client, resource)}
+    else
+      err -> err
+    end
+  end
 
   @impl Oauth2Provider.Authenticatable
   def find_and_verify(%{
@@ -73,15 +83,22 @@ defmodule Oauth2Provider.AppActor do
   defimpl Oauth2Provider.Authenticatable.TokenResource do
     def claims(%Oauth2Provider.AppActor{
           client: %{id: client_id},
-          user: user,
+          user: resource,
           app: %{scopes: scopes}
-        }, typ),
-        do: %{
-          "clientId" => client_id,
-          "resource" => Oauth2Provider.Authenticatable.claims_from_resource(user, typ),
-          "scopes" => scopes
-        }
+    }, typ) do
+      {:ok, res_type} = Oauth2Provider.Authenticatable.get_type_from_impl(resource)
+      resource_claims = Oauth2Provider.Authenticatable.TokenResource.claims(resource, typ)
+      app_claims = %{
+        "client_id" => client_id,
+        "azp" => client_id,
+        "scope" => Enum.join(scopes, " "),
+        "aud" => [client_id],
+        "res_type" => res_type
+      }
+      Oauth2Provider.Authenticatable.merge_claims(resource_claims, app_claims)
+    end
 
-    def sub(%Oauth2Provider.AppActor{id: id}), do: {:ok, id}
+    def sub(%Oauth2Provider.AppActor{user: resource}),
+      do: Oauth2Provider.Authenticatable.TokenResource.sub(resource)
   end
 end

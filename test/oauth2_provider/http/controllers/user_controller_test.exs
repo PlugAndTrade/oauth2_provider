@@ -20,10 +20,10 @@ defmodule Oauth2Provider.HTTP.UserControllerTest do
   test "get user data as app actor" do
     {:ok, %{id: client_id} = client} = create_client()
 
-    {:ok, user} = Oauth2Provider.Test.User.new()
+    {:ok, %{id: user_id, username: username} = user} = Oauth2Provider.Test.User.new()
 
     {:ok, app} =
-      %{client_id: client_id, name: "test_client", user_id: user.id, scopes: ["a", "b"]}
+      %{client_id: client_id, name: "test_client", user_id: user_id, scopes: ["a", "b"]}
       |> Oauth2Provider.App.changeset()
       |> Oauth2Provider.Repo.insert()
 
@@ -38,10 +38,9 @@ defmodule Oauth2Provider.HTTP.UserControllerTest do
     data = sent_json_resp(conn)
 
     assert %{
-             "sub" => user.id,
-             "subType" => "user",
-             "username" => user.username
-           } == data
+             "sub" => ^user_id,
+             "username" => ^username
+           } = data
     assert ["no-store"] = get_resp_header(conn, "cache-control")
     assert ["no-cache"] = get_resp_header(conn, "pragma")
   end

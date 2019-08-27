@@ -9,6 +9,6 @@ defmodule Oauth2Provider.Guardian do
 
   def build_claims(%{"typ" => typ} = claims, resource, _opts) do
     custom_claims = Oauth2Provider.Authenticatable.claims_from_resource(resource, typ)
-    {:ok, Map.merge(claims, custom_claims)}
+    {:ok, Oauth2Provider.Authenticatable.merge_claims(claims, custom_claims)}
   end
 end

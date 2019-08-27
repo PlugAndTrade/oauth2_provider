@@ -54,14 +54,14 @@ defmodule Oauth2Provider.HTTP.TokenControllerTest do
     } = data
     assert {:ok, %{
       "typ" => "access",
-      "sub" => app_id,
-      "clientId" => client_id,
-      "subType" => "app",
-      "resource" => %{
-        "sub" => user_id,
-        "subType" => "user",
-        "username" => "test"
-      }
+      "sub" => ^user_id,
+      "username" => "test",
+      "azp" => ^client_id,
+      "client_id" => ^client_id,
+      "sub_type" => "app",
+      "res_type" => "user",
+      "aud" => ["oauth2_provider", ^client_id],
+      "scope" => "openid a b"
     }} = Oauth2Provider.Guardian.decode_and_verify(jwt)
     assert ["no-store"] = get_resp_header(conn, "cache-control")
     assert ["no-cache"] = get_resp_header(conn, "pragma")
