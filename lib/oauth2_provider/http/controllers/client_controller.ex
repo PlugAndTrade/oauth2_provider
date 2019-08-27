@@ -11,7 +11,7 @@ defmodule Oauth2Provider.HTTP.ClientController do
          {:ok, client} <- Oauth2Provider.Repo.insert(changeset) do
       data = client
              |> Map.from_struct()
-             |> Map.take([:id, :name, :redirect_uris])
+             |> Map.take([:id, :name, :redirect_uris, :allow_noauth])
              |> Map.merge(%{secret: secret})
       conn
       |> put_no_cache_headers()
@@ -48,7 +48,18 @@ defmodule Oauth2Provider.HTTP.ClientController do
     {secret, secret_hash}
   end
 
-  def validate_create(%{"name" => name, "redirect_uris" => redirect_uris}) do
-    %{name: name, redirect_uris: redirect_uris}
+  def validate_create(%{
+    "name" => name,
+    "redirect_uris" => redirect_uris
+  } = params) do
+    %{
+      name: name,
+      redirect_uris: redirect_uris,
+      allow_noauth: Map.get(params, "allow_noauth", false) |> as_bool()
+    }
   end
+
+  def as_bool(true), do: true
+  def as_bool("true"), do: true
+  def as_bool(_), do: false
 end

@@ -25,12 +25,42 @@ defmodule Oauth2Provider.HTTP.ClientControllerTest do
       "id" => client_id,
       "secret" => secret,
       "name" => "test_client_name",
-      "redirect_uris" => ["http://localhost:3000/callback"]
+      "redirect_uris" => ["http://localhost:3000/callback"],
+      "allow_noauth" => false
     } = sent_json_resp(conn)
 
     assert {:ok, %{
-      secret: hashed_secret} = client
-    } = Oauth2Provider.Repo.fetch(Oauth2Provider.Client, client_id)
+      secret: hashed_secret
+    } = client} = Oauth2Provider.Repo.fetch(Oauth2Provider.Client, client_id)
+    assert :verified == Crypto.verify_password(Base.decode64!(hashed_secret), secret)
+  end
+
+  test "create client allow_noauth" do
+    params = %{
+      "name" => "test_client_name",
+      "redirect_uris" => ["http://localhost:3000/callback"],
+      "allow_noauth" => "true"
+    }
+
+    admin = Oauth2Provider.SingletonAdmin.new()
+
+    conn =
+      conn(:post, "/clients", params)
+      |> Oauth2Provider.Guardian.Plug.sign_in(admin)
+      |> Oauth2Provider.HTTP.Router.call([])
+
+    assert 201 == conn.status
+    assert %{
+      "id" => client_id,
+      "secret" => secret,
+      "name" => "test_client_name",
+      "redirect_uris" => ["http://localhost:3000/callback"],
+      "allow_noauth" => true
+    } = sent_json_resp(conn)
+
+    assert {:ok, %{
+      secret: hashed_secret
+    } = client} = Oauth2Provider.Repo.fetch(Oauth2Provider.Client, client_id)
     assert :verified == Crypto.verify_password(Base.decode64!(hashed_secret), secret)
   end
 
