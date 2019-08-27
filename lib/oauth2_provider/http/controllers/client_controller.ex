@@ -35,6 +35,27 @@ defmodule Oauth2Provider.HTTP.ClientController do
     end
   end
 
+  def list(conn, _params) do
+    with :ok <- verify_admin(conn),
+         clients = Oauth2Provider.Repo.all(Oauth2Provider.Client) do
+      conn
+      |> json(201, %{"clients" => clients})
+    else
+      :forbidden ->
+        json(conn, 403, %{errors: [%{
+          code: "ERR_NOT_ADMIN",
+          message: "Only administrators may create new clients"}]
+        })
+
+      err ->
+        Logger.error(inspect(err))
+        json(conn, 500, %{errors: [%{
+          code: "ERR_INTENAL_ERROR",
+          message: "Unknown error"
+        }]})
+    end
+  end
+
   def verify_admin(conn) do
     case current_resource(conn) |> Oauth2Provider.Authenticatable.is_admin?() do
       true -> :ok

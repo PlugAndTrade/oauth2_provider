@@ -3,6 +3,7 @@ defmodule Oauth2Provider.HTTP.ClientRoutes do
     auth: true,
     module: Oauth2Provider.HTTP.ClientController,
     routes: [
-      {:post, "", :create}
+      {:post, "", :create},
+      {:get, "", :list},
     ]
 end

@@ -2,6 +2,7 @@ defmodule Oauth2Provider.HTTP.ClientControllerTest do
   use ExUnit.Case, async: true
   use Plug.Test
   import Oauth2Provider.Test.Helpers.ControllerHelper
+  import Oauth2Provider.Test.Helpers.DBHelper
 
   setup do
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(Oauth2Provider.Repo)
@@ -79,5 +80,26 @@ defmodule Oauth2Provider.HTTP.ClientControllerTest do
 
     assert 403 == conn.status
     assert %{"errors" => [_]} = sent_json_resp(conn)
+  end
+
+  test "list clients" do
+    {:ok, %{id: client_id_1}} = create_client()
+    {:ok, %{id: client_id_2}} = create_client()
+    {:ok, %{id: client_id_3}} = create_client()
+
+    admin = Oauth2Provider.SingletonAdmin.new()
+
+    conn =
+      conn(:get, "/clients")
+      |> Oauth2Provider.Guardian.Plug.sign_in(admin)
+      |> Oauth2Provider.HTTP.Router.call([])
+
+    assert %{"clients" => clients} = sent_json_resp(conn)
+    assert clients |> Enum.map(&Map.get(&1, "secret")) |> Enum.all?(&is_nil/1)
+
+    ids = Enum.map(clients, &Map.get(&1, "id"))
+    assert client_id_1 in ids
+    assert client_id_2 in ids
+    assert client_id_3 in ids
   end
 end
