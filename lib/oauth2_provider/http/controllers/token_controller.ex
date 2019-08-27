@@ -46,8 +46,9 @@ defmodule Oauth2Provider.HTTP.TokenController do
         _ ->
           %{"exp" => exp} = current_claims(conn)
           ttl = exp - :os.system_time(:seconds)
-          json(
-            conn,
+          conn
+          |> put_no_cache_headers()
+          |> json(
             201,
             %{
               "access_token" => current_token(conn),
@@ -80,8 +81,9 @@ defmodule Oauth2Provider.HTTP.TokenController do
       true ->
         %{"exp" => exp} = current_claims(conn)
         ttl = exp - :os.system_time(:seconds)
-        json(
-          conn,
+        conn
+        |> put_no_cache_headers()
+        |> json(
           200,
           %{
             "access_token" => current_token(conn),

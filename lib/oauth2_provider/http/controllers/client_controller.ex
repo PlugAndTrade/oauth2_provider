@@ -9,11 +9,13 @@ defmodule Oauth2Provider.HTTP.ClientController do
          changeset <-
            Oauth2Provider.Client.changeset(Map.merge(create_params, %{secret: secret_hash})),
          {:ok, client} <- Oauth2Provider.Repo.insert(changeset) do
-           data = client
-                  |> Map.from_struct()
-                  |> Map.take([:id, :name, :redirect_uris])
-                  |> Map.merge(%{secret: secret})
-           json(conn, 201, data)
+      data = client
+             |> Map.from_struct()
+             |> Map.take([:id, :name, :redirect_uris])
+             |> Map.merge(%{secret: secret})
+      conn
+      |> put_no_cache_headers()
+      |> json(201, data)
     else
       {:error, err} ->
         json(conn, 400, %{errors: [err]})

@@ -42,5 +42,7 @@ defmodule Oauth2Provider.HTTP.UserControllerTest do
              "subType" => "user",
              "username" => user.username
            } == data
+    assert ["no-store"] = get_resp_header(conn, "cache-control")
+    assert ["no-cache"] = get_resp_header(conn, "pragma")
   end
 end

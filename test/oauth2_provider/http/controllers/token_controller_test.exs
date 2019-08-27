@@ -63,6 +63,8 @@ defmodule Oauth2Provider.HTTP.TokenControllerTest do
         "username" => "test"
       }
     }} = Oauth2Provider.Guardian.decode_and_verify(jwt)
+    assert ["no-store"] = get_resp_header(conn, "cache-control")
+    assert ["no-cache"] = get_resp_header(conn, "pragma")
   end
 
   test "create app access token bad secret" do
@@ -147,6 +149,8 @@ defmodule Oauth2Provider.HTTP.TokenControllerTest do
       "token_type" => "Bearer",
       "expires_in" => ttl
     } = sent_json_resp(conn)
+    assert ["no-store"] = get_resp_header(conn, "cache-control")
+    assert ["no-cache"] = get_resp_header(conn, "pragma")
   end
 
   test "create admin token disallow emtpy password" do
@@ -174,5 +178,7 @@ defmodule Oauth2Provider.HTTP.TokenControllerTest do
       "token_type" => "Bearer",
       "expires_in" => ttl
     } = sent_json_resp(conn)
+    assert ["no-store"] = get_resp_header(conn, "cache-control")
+    assert ["no-cache"] = get_resp_header(conn, "pragma")
   end
 end

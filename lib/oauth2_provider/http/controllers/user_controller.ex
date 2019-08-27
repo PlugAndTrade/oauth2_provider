@@ -6,8 +6,12 @@ defmodule Oauth2Provider.HTTP.UserController do
     actor = current_resource(conn)
 
     case get_user(conn, actor) do
-      {:error, error} -> json(conn, 400, error)
-      user -> json(conn, 200, user)
+      {:error, error} ->
+        json(conn, 400, error)
+      user ->
+        conn
+        |> put_no_cache_headers()
+        |> json(200, user)
     end
   end
 

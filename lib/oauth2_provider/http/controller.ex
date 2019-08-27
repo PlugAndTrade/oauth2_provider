@@ -13,6 +13,12 @@ defmodule Oauth2Provider.HTTP.Controller do
       |> Plug.Conn.put_resp_content_type("application/json")
       |> Plug.Conn.send_resp(status, Jason.encode!(data))
 
+  def put_no_cache_headers(conn),
+    do:
+      conn
+      |> Plug.Conn.put_resp_header("cache-control", "no-store")
+      |> Plug.Conn.put_resp_header("pragma", "no-cache")
+
   def add_query_params(%URI{query: nil} = uri, params),
     do: URI.to_string(%{uri | query: URI.encode_query(params)})
 
