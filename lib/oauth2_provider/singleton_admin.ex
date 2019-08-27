@@ -35,7 +35,7 @@ defmodule Oauth2Provider.SingletonAdmin do
   def is_admin?(_), do: true
 
   defimpl Oauth2Provider.Authenticatable.TokenResource do
-    def claims(%Oauth2Provider.SingletonAdmin{username: username}),
+    def claims(%Oauth2Provider.SingletonAdmin{username: username}, _typ),
       do: %{"username" => username}
 
     def sub(%Oauth2Provider.SingletonAdmin{id: id}), do: {:ok, id}

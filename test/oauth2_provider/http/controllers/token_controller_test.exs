@@ -28,7 +28,7 @@ defmodule Oauth2Provider.HTTP.TokenControllerTest do
 
     %{id: code} = token = Oauth2Provider.Token.new(
       app_id: app_id,
-      resource_claims: Oauth2Provider.Authenticatable.claims_from_resource(user)
+      resource_claims: Oauth2Provider.Authenticatable.claims_from_resource(user, "access")
     )
     Oauth2Provider.Token.Registry.put(:token_registry, token)
 
@@ -52,6 +52,17 @@ defmodule Oauth2Provider.HTTP.TokenControllerTest do
       "token_type" => "Bearer",
       "expires_in" => ttl
     } = data
+    assert {:ok, %{
+      "typ" => "access",
+      "sub" => app_id,
+      "clientId" => client_id,
+      "subType" => "app",
+      "resource" => %{
+        "sub" => user_id,
+        "subType" => "user",
+        "username" => "test"
+      }
+    }} = Oauth2Provider.Guardian.decode_and_verify(jwt)
   end
 
   test "create app access token bad secret" do
@@ -64,7 +75,7 @@ defmodule Oauth2Provider.HTTP.TokenControllerTest do
 
     %{id: code} = token = Oauth2Provider.Token.new(
       app_id: app_id,
-      resource_claims: Oauth2Provider.Authenticatable.claims_from_resource(user)
+      resource_claims: Oauth2Provider.Authenticatable.claims_from_resource(user, "access")
     )
     Oauth2Provider.Token.Registry.put(:token_registry, token)
 
@@ -98,7 +109,7 @@ defmodule Oauth2Provider.HTTP.TokenControllerTest do
 
     %{id: code} = token = Oauth2Provider.Token.new(
       app_id: app_id,
-      resource_claims: Oauth2Provider.Authenticatable.claims_from_resource(user)
+      resource_claims: Oauth2Provider.Authenticatable.claims_from_resource(user, "access")
     )
     Oauth2Provider.Token.Registry.put(:token_registry, token)
 
@@ -154,10 +165,7 @@ defmodule Oauth2Provider.HTTP.TokenControllerTest do
 
     conn =
       conn(:get, "/token/current")
-      |> Oauth2Provider.Guardian.Plug.sign_in(
-        user,
-        Oauth2Provider.Authenticatable.claims_from_resource(user)
-      )
+      |> Oauth2Provider.Guardian.Plug.sign_in(user)
       |> Oauth2Provider.HTTP.Router.call([])
 
     assert 200 == conn.status

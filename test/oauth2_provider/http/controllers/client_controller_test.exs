@@ -17,10 +17,7 @@ defmodule Oauth2Provider.HTTP.ClientControllerTest do
 
     conn =
       conn(:post, "/clients", params)
-      |> Oauth2Provider.Guardian.Plug.sign_in(
-        admin,
-        Oauth2Provider.Authenticatable.claims_from_resource(admin)
-      )
+      |> Oauth2Provider.Guardian.Plug.sign_in(admin)
       |> Oauth2Provider.HTTP.Router.call([])
 
     assert 201 == conn.status
@@ -47,10 +44,7 @@ defmodule Oauth2Provider.HTTP.ClientControllerTest do
 
     conn =
       conn(:post, "/clients", params)
-      |> Oauth2Provider.Guardian.Plug.sign_in(
-        user,
-        Oauth2Provider.Authenticatable.claims_from_resource(user)
-      )
+      |> Oauth2Provider.Guardian.Plug.sign_in(user)
       |> Oauth2Provider.HTTP.Router.call([])
 
     assert 403 == conn.status

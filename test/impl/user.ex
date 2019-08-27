@@ -25,7 +25,7 @@ defmodule Oauth2Provider.Test.User do
     do: {:error, %{message: "No such user found", code: "ERR_NOT_FOUND"}}
 
   defimpl Oauth2Provider.Authenticatable.TokenResource do
-    def claims(%Oauth2Provider.Test.User{username: username}),
+    def claims(%Oauth2Provider.Test.User{username: username}, _typ),
       do: %{"username" => username}
 
     def sub(%Oauth2Provider.Test.User{id: id}), do: {:ok, id}

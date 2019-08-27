@@ -15,10 +15,7 @@ defmodule Oauth2Provider.HTTP.AppControllerTest do
 
     conn =
       conn(:post, "/apps", %{"client_id" => client_id, "scopes" => ["openid", "a", "b"]})
-      |> Oauth2Provider.Guardian.Plug.sign_in(
-        user,
-        %{"subType" => "user"}
-      )
+      |> Oauth2Provider.Guardian.Plug.sign_in(user)
       |> Oauth2Provider.HTTP.Router.call([])
 
     %{id: user_id} = Oauth2Provider.Guardian.Plug.current_resource(conn)
@@ -50,10 +47,7 @@ defmodule Oauth2Provider.HTTP.AppControllerTest do
 
     conn =
       conn(:post, "/apps", params)
-      |> Oauth2Provider.Guardian.Plug.sign_in(
-        user,
-        %{"subType" => "user"}
-      )
+      |> Oauth2Provider.Guardian.Plug.sign_in(user)
       |> Oauth2Provider.HTTP.Router.call([])
 
     assert 302 == conn.status
@@ -94,10 +88,7 @@ defmodule Oauth2Provider.HTTP.AppControllerTest do
 
     conn =
       conn(:get, "/apps/verify", params)
-      |> Oauth2Provider.Guardian.Plug.sign_in(
-        user,
-        %{"subType" => "user"}
-      )
+      |> Oauth2Provider.Guardian.Plug.sign_in(user)
       |> Oauth2Provider.HTTP.Router.call([])
 
     assert 302 == conn.status

@@ -7,8 +7,8 @@ defmodule Oauth2Provider.Authenticatable do
 
   defprotocol TokenResource do
     @doc "Construct the claims to be encoded in the token from the resource"
-    @spec claims(term()) :: map()
-    def claims(resource)
+    @spec claims(term(), String.t()) :: map()
+    def claims(resource, typ)
 
     @doc "Returns the value to be used as subject in the token"
     @spec sub(term()) :: {:ok, String.t()} | {:error, %{code: String.t(), message: String.t()}}
@@ -29,11 +29,11 @@ defmodule Oauth2Provider.Authenticatable do
     end
   end
 
-  def claims_from_resource(%impl{} = res) do
+  def claims_from_resource(%impl{} = res, typ) do
     case get_type_from_impl(impl) do
       {:ok, type} ->
         {:ok, sub} = TokenResource.sub(res)
-        Map.merge(TokenResource.claims(res), %{"subType" => type, "sub" => sub})
+        Map.merge(TokenResource.claims(res, typ), %{"subType" => type, "sub" => sub})
       err -> err
     end
   end

@@ -12,9 +12,9 @@ defmodule Oauth2Provider.HTTP.UserController do
   end
 
   defp get_user(_conn, %Oauth2Provider.AppActor{user: resource}),
-    do: Oauth2Provider.Authenticatable.claims_from_resource(resource)
+    do: Oauth2Provider.Authenticatable.claims_from_resource(resource, "access")
 
   defp get_user(conn, resource),
-    do: Oauth2Provider.Authenticatable.claims_from_resource(resource)
+    do: Oauth2Provider.Authenticatable.claims_from_resource(resource, "access")
     |> Map.merge(%{"access_token" => current_token(conn)})
 end

@@ -75,10 +75,10 @@ defmodule Oauth2Provider.AppActor do
           client: %{id: client_id},
           user: user,
           app: %{scopes: scopes}
-        }),
+        }, typ),
         do: %{
           "clientId" => client_id,
-          "resource" => Oauth2Provider.Authenticatable.claims_from_resource(user),
+          "resource" => Oauth2Provider.Authenticatable.claims_from_resource(user, typ),
           "scopes" => scopes
         }
 

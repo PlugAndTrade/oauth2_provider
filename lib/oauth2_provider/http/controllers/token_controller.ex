@@ -32,7 +32,7 @@ defmodule Oauth2Provider.HTTP.TokenController do
         sign_in(
           conn,
           resource,
-          Oauth2Provider.Authenticatable.claims_from_resource(resource),
+          %{},
           secret: secret,
           headers: Oauth2Provider.Guardian.DynamicSecretFetcher.jwt_key_headers(secret)
         )

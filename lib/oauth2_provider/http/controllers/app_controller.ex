@@ -152,7 +152,7 @@ defmodule Oauth2Provider.HTTP.AppController do
   defp get_resource(state, conn) do
     case current_resource(conn) do
       nil -> append_error(state, %{message: "Not logged in", code: "ERR_UNAUTHORIZED"})
-      resource -> Map.put(state, :resource, Oauth2Provider.Authenticatable.claims_from_resource(resource))
+      resource -> Map.put(state, :resource, Oauth2Provider.Authenticatable.claims_from_resource(resource, "access"))
     end
   end
 

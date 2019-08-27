@@ -31,10 +31,7 @@ defmodule Oauth2Provider.HTTP.UserControllerTest do
 
     conn =
       conn(:get, "/users/me", %{})
-      |> Oauth2Provider.Guardian.Plug.sign_in(
-        app_actor,
-        Oauth2Provider.Authenticatable.claims_from_resource(app_actor)
-      )
+      |> Oauth2Provider.Guardian.Plug.sign_in(app_actor)
       |> Oauth2Provider.HTTP.Router.call([])
 
     assert 200 == conn.status
