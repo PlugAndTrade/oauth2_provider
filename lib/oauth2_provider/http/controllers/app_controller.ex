@@ -114,20 +114,16 @@ defmodule Oauth2Provider.HTTP.AppController do
     params: %{redirect_uri: redirect_uri, state: state, nonce: nonce},
     authorization_flow: :implicit
   } = res) do
-    {:ok, secret} = Oauth2Provider.Guardian.DynamicSecretFetcher.fetch_signing_secret(:some_impl, [])
     {:ok, app_actor} = Oauth2Provider.AppActor.find_by_id(app_id, resource_claims)
-    {:ok, token, %{"exp" => exp}} = Oauth2Provider.Guardian.encode_and_sign(
-      app_actor,
-      %{"nonce" => nonce},
-      secret: secret,
-      headers: Oauth2Provider.Guardian.DynamicSecretFetcher.jwt_key_headers(secret)
-    )
+    {:ok, access_token, id_token, %{"exp" => exp}} =
+      Oauth2Provider.Guardian.generate_tokens(app_actor, %{"nonce" => nonce})
 
     uri = add_query_params(redirect_uri, %{
-      "access_token" => token,
+      "access_token" => access_token,
       "token_type" => "Bearer",
       "expires_in" => exp - :os.system_time(:seconds),
-      "state" => state
+      "state" => state,
+      "id_token" => id_token
     })
 
     Map.put(res, :authorization_uri, uri)

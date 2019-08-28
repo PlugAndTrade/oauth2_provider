@@ -26,16 +26,14 @@ defmodule Oauth2Provider.HTTP.TokenController do
 
   def create(conn, params) do
     with {:ok, %{type: type}} <- validate(params),
-         {:ok, resource, params} <- Oauth2Provider.Authenticatable.find_and_verify(type, params) do
-      {:ok, secret} = Oauth2Provider.Guardian.DynamicSecretFetcher.fetch_signing_secret(__MODULE__, [])
-      conn =
-        sign_in(
-          conn,
-          resource,
-          %{},
-          secret: secret,
-          headers: Oauth2Provider.Guardian.DynamicSecretFetcher.jwt_key_headers(secret)
-        )
+         {:ok, resource, params} <- Oauth2Provider.Authenticatable.find_and_verify(type, params),
+         {:ok, access_token, id_token, %{"exp" => exp} = claims} <- Oauth2Provider.Guardian.generate_tokens(resource, %{}) do
+
+      conn = conn
+      |> put_current_claims(claims)
+      |> put_current_resource(resource)
+      |> put_current_token(access_token)
+      |> put_session_token(access_token)
 
       case params do
         %{"redirect_to" => redirect_to} ->
@@ -44,16 +42,15 @@ defmodule Oauth2Provider.HTTP.TokenController do
           |> send_resp(302, "")
 
         _ ->
-          %{"exp" => exp} = current_claims(conn)
-          ttl = exp - :os.system_time(:seconds)
           conn
           |> put_no_cache_headers()
           |> json(
             201,
             %{
-              "access_token" => current_token(conn),
+              "access_token" => access_token,
+              "id_token" => id_token,
               "token_type" => "Bearer",
-              "expires_in" => ttl,
+              "expires_in" => exp - :os.system_time(:seconds),
             }
           )
       end
