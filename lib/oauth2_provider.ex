@@ -12,7 +12,6 @@ defmodule Oauth2Provider do
 
     children = [
       {JwkProvider, [name: JwkProvider]},
-      {Oauth2Provider.Repo, []},
       {Oauth2Provider.Token.Registry, [name: :token_registry]}
     ]
 

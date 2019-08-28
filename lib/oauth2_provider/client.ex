@@ -2,8 +2,6 @@ defmodule Oauth2Provider.Client do
   use Ecto.Schema
   import Ecto.Changeset
 
-  @repo Oauth2Provider.Repo
-
   @derive {Jason.Encoder, only: [:id, :name, :redirect_uris, :allow_noauth]}
 
   @primary_key {:id, :string, []}
@@ -21,12 +19,5 @@ defmodule Oauth2Provider.Client do
     |> cast(params, [:name, :redirect_uris, :secret, :allow_noauth])
     |> cast(%{id: UUID.uuid4()}, [:id])
     |> validate_required([:id, :name, :secret, :redirect_uris])
-  end
-
-  def get(id) do
-    case @repo.get(__MODULE__, id) do
-      nil -> {:error, %{code: "ERR_NOT_FOUND", message: "Client not found"}}
-      client -> {:ok, client}
-    end
   end
 end

@@ -46,14 +46,8 @@ config :oauth2_provider, Oauth2Provider.Authenticatable,
     }
   ]
 
-config :oauth2_provider, ecto_repos: [Oauth2Provider.Repo]
-
-config :oauth2_provider, Oauth2Provider.Repo,
-  database: "oauth2_provider",
-  username: "postgres",
-  password: "postgres",
-  hostname: "localhost",
-  port: "5432"
+config :oauth2_provider, Oauth2Provider.Store,
+  repo: Oauth2Provider.Test.Repo
 
 config :oauth2_provider, Oauth2Provider.Guardian,
   allowed_algos: ["RS256"],

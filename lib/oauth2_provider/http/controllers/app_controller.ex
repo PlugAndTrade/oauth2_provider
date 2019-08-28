@@ -231,7 +231,7 @@ defmodule Oauth2Provider.HTTP.AppController do
     Map.put(
       state,
       :app,
-      Oauth2Provider.Repo.get_by(Oauth2Provider.App, client_id: client_id, user_id: sub)
+      Oauth2Provider.Store.get_by(Oauth2Provider.App, client_id: client_id, user_id: sub)
     )
   end
 
@@ -277,7 +277,7 @@ defmodule Oauth2Provider.HTTP.AppController do
   defp create_changeset(state), do: state
 
   defp insert_app(%{error?: false, changeset: changeset} = state) do
-    case Oauth2Provider.Repo.insert(changeset) do
+    case Oauth2Provider.Store.insert(changeset) do
       {:ok, app} ->
         Map.put(state, :app, EctoHelper.strip_meta(app))
 
@@ -292,7 +292,7 @@ defmodule Oauth2Provider.HTTP.AppController do
   defp insert_app(state), do: state
 
   defp get_client(%{params: %{client_id: client_id}} = state) do
-    case Oauth2Provider.Repo.get(Oauth2Provider.Client, client_id) do
+    case Oauth2Provider.Store.get(Oauth2Provider.Client, client_id) do
       nil ->
         state
         |> append_error(%{message: "Client not found", code: "ERR_NOT_FOUND"})

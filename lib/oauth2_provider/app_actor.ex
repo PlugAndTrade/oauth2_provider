@@ -16,8 +16,8 @@ defmodule Oauth2Provider.AppActor do
 
   def find_by_id(id, %{"sub" => resource_sub} = resource_claims) do
     with {:ok, %{client_id: client_id} = app} <-
-           Oauth2Provider.Repo.search_one(Oauth2Provider.App, id: id, user_id: resource_sub),
-         {:ok, client} <- Oauth2Provider.Repo.fetch(Oauth2Provider.Client, client_id),
+           Oauth2Provider.Store.search_one(Oauth2Provider.App, id: id, user_id: resource_sub),
+         {:ok, client} <- Oauth2Provider.Store.fetch(Oauth2Provider.Client, client_id),
          {:ok, resource} <- Oauth2Provider.Authenticatable.find_by_claims(resource_claims) do
       {:ok, new(app, client, resource)}
     else
@@ -28,9 +28,9 @@ defmodule Oauth2Provider.AppActor do
   @impl Oauth2Provider.Authenticatable
   def find_by_claims(%{"client_id" => client_id, "sub" => res_id, "res_type" => res_type} = claims) do
     with {:ok, app} <-
-           Oauth2Provider.Repo.search_one(Oauth2Provider.App, client_id: client_id, user_id: res_id),
+           Oauth2Provider.Store.search_one(Oauth2Provider.App, client_id: client_id, user_id: res_id),
          {:ok, client} <-
-           Oauth2Provider.Repo.fetch(Oauth2Provider.Client, client_id),
+           Oauth2Provider.Store.fetch(Oauth2Provider.Client, client_id),
          {:ok, resource} <-
            Oauth2Provider.Authenticatable.find_by_claims(Map.put(claims, "sub_type", res_type)) do
       {:ok, new(app, client, resource)}

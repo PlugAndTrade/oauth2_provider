@@ -5,7 +5,7 @@ defmodule Oauth2Provider.HTTP.UserControllerTest do
   import Oauth2Provider.Test.Helpers.DBHelper
 
   setup do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Oauth2Provider.Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Oauth2Provider.Test.Repo)
   end
 
   test "unauthenticated" do
@@ -25,7 +25,7 @@ defmodule Oauth2Provider.HTTP.UserControllerTest do
     {:ok, app} =
       %{client_id: client_id, name: "test_client", user_id: user_id, scopes: ["a", "b"]}
       |> Oauth2Provider.App.changeset()
-      |> Oauth2Provider.Repo.insert()
+      |> Oauth2Provider.Store.insert()
 
     app_actor = Oauth2Provider.AppActor.new(app, client, user)
 

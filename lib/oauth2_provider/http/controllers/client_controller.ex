@@ -8,7 +8,7 @@ defmodule Oauth2Provider.HTTP.ClientController do
          {secret, secret_hash} <- generate_secret(),
          changeset <-
            Oauth2Provider.Client.changeset(Map.merge(create_params, %{secret: secret_hash})),
-         {:ok, client} <- Oauth2Provider.Repo.insert(changeset) do
+         {:ok, client} <- Oauth2Provider.Store.insert(changeset) do
       data = client
              |> Map.from_struct()
              |> Map.take([:id, :name, :redirect_uris, :allow_noauth])
@@ -37,7 +37,7 @@ defmodule Oauth2Provider.HTTP.ClientController do
 
   def list(conn, _params) do
     with :ok <- verify_admin(conn),
-         clients = Oauth2Provider.Repo.all(Oauth2Provider.Client) do
+         clients = Oauth2Provider.Store.all(Oauth2Provider.Client) do
       conn
       |> json(201, %{"clients" => clients})
     else

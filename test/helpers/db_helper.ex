@@ -11,7 +11,7 @@ defmodule Oauth2Provider.Test.Helpers.DBHelper do
       allow_noauth: Keyword.get(opts, :allow_noauth, false)
     }
     |> Oauth2Provider.Client.changeset()
-    |> Oauth2Provider.Repo.insert()
+    |> Oauth2Provider.Store.insert()
   end
 
   def create_app(client_id, user_id) do
@@ -22,6 +22,6 @@ defmodule Oauth2Provider.Test.Helpers.DBHelper do
       scopes: ["openid", "a", "b"]
     }
     |> Oauth2Provider.App.changeset()
-    |> Oauth2Provider.Repo.insert()
+    |> Oauth2Provider.Store.insert()
   end
 end

@@ -5,7 +5,7 @@ defmodule Oauth2Provider.HTTP.AppControllerTest do
   import Oauth2Provider.Test.Helpers.DBHelper
 
   setup do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Oauth2Provider.Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Oauth2Provider.Test.Repo)
   end
 
   test "create app success" do

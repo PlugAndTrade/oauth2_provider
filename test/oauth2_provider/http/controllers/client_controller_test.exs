@@ -5,7 +5,7 @@ defmodule Oauth2Provider.HTTP.ClientControllerTest do
   import Oauth2Provider.Test.Helpers.DBHelper
 
   setup do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Oauth2Provider.Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Oauth2Provider.Test.Repo)
   end
 
   test "create client success" do
@@ -32,7 +32,7 @@ defmodule Oauth2Provider.HTTP.ClientControllerTest do
 
     assert {:ok, %{
       secret: hashed_secret
-    } = client} = Oauth2Provider.Repo.fetch(Oauth2Provider.Client, client_id)
+    } = client} = Oauth2Provider.Store.fetch(Oauth2Provider.Client, client_id)
     assert :verified == Crypto.verify_password(Base.decode64!(hashed_secret), secret)
   end
 
@@ -61,7 +61,7 @@ defmodule Oauth2Provider.HTTP.ClientControllerTest do
 
     assert {:ok, %{
       secret: hashed_secret
-    } = client} = Oauth2Provider.Repo.fetch(Oauth2Provider.Client, client_id)
+    } = client} = Oauth2Provider.Store.fetch(Oauth2Provider.Client, client_id)
     assert :verified == Crypto.verify_password(Base.decode64!(hashed_secret), secret)
   end
 
