@@ -1,6 +1,23 @@
 # Oauth2Provider
 
-**TODO: Add description**
+Implements all parts of OAuth 2.0 and OpenID Connect 1.0.
+
+## TODO
+
+### Refresh token
+
+Given a refresh token the user and client must be identifiable, either throught
+saving user claims to database or encoding user claims in the token.
+
+The client must authenticate, if not configured otherwise, when refreshing a
+token.
+
+A method for revoking refresh tokens must be provided, since they have very
+long ttl.
+
+### Change subject
+
+Provide a method to act on behalf of another subject.
 
 ## Installation
 
