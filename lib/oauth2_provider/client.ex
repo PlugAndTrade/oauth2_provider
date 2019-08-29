@@ -15,9 +15,9 @@ defmodule Oauth2Provider.Client do
   def changeset(params), do: changeset(%__MODULE__{}, params)
 
   def changeset(client, params) do
+    params = Map.merge(%{id: UUID.uuid4(), allow_noauth: false}, params)
     client
-    |> cast(params, [:name, :redirect_uris, :secret, :allow_noauth])
-    |> cast(%{id: UUID.uuid4()}, [:id])
+    |> cast(params, [:id, :name, :redirect_uris, :secret, :allow_noauth])
     |> validate_required([:id, :name, :secret, :redirect_uris])
   end
 end
