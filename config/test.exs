@@ -1,11 +1,11 @@
 use Mix.Config
 
-config :oauth2_provider, ecto_repos: [Oauth2Provider.Repo]
+config :oauth2_provider, ecto_repos: [Oauth2Provider.TestRepo]
 
 config :oauth2_provider, Oauth2Provider.Store,
-  repo: Oauth2Provider.Test.Repo
+  repo: Oauth2Provider.TestRepo
 
-config :oauth2_provider, Oauth2Provider.Test.Repo,
+config :oauth2_provider, Oauth2Provider.TestRepo,
   database: "oauth2_provider",
   username: "postgres",
   password: "postgres",

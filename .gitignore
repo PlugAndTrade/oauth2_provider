@@ -23,3 +23,4 @@ erl_crash.dump
 oauth2_provider-*.tar
 
 priv/certs/*
+priv/test_repo/migrations/*

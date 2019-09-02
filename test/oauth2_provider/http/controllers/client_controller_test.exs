@@ -5,7 +5,7 @@ defmodule Oauth2Provider.HTTP.ClientControllerTest do
   import Oauth2Provider.Test.Helpers.DBHelper
 
   setup do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Oauth2Provider.Test.Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Oauth2Provider.TestRepo)
   end
 
   test "create client success" do

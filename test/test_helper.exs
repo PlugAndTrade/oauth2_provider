@@ -1,2 +1,2 @@
-Oauth2Provider.Test.Repo.start_link()
+Oauth2Provider.TestRepo.start_link()
 ExUnit.start()

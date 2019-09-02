@@ -47,7 +47,7 @@ config :oauth2_provider, Oauth2Provider.Authenticatable,
   ]
 
 config :oauth2_provider, Oauth2Provider.Store,
-  repo: Oauth2Provider.Test.Repo
+  repo: Oauth2Provider.TestRepo
 
 config :oauth2_provider, Oauth2Provider.Guardian,
   allowed_algos: ["RS256"],
