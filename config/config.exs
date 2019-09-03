@@ -28,7 +28,7 @@ config :oauth2_provider,
     key: "oauth2_provider",
     table: :session
   ],
-  init_login: &Oauth2Provider.HTTP.TokenController.login_html_template/2,
+  init_login: {Oauth2Provider.HTTP.TokenController, :login_html_template},
   html: [
     authorize_form: "./test/impl/templates/authorize_form.html",
     login_form: "./test/impl/templates/login_form.html"

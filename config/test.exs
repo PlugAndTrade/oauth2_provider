@@ -14,7 +14,7 @@ config :oauth2_provider, Oauth2Provider.TestRepo,
   pool: Ecto.Adapters.SQL.Sandbox
 
 config :oauth2_provider,
-  init_login: &Oauth2Provider.Test.User.init_login/2,
+  init_login: {Oauth2Provider.Test.User, :init_login},
   html: []
 
 config :jwk_provider, :provider,

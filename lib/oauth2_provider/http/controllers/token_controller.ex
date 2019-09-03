@@ -3,7 +3,7 @@ defmodule Oauth2Provider.HTTP.TokenController do
   import Oauth2Provider.Guardian.Plug
   require EEx
 
-  @login_http_response Elixir.Confex.get_env(:oauth2_provider, :init_login, &Oauth2Provider.HTTP.TokenController.login_html_template/2)
+  @login_http_response Elixir.Confex.get_env(:oauth2_provider, :init_login, {Oauth2Provider.HTTP.TokenController, :login_html_template})
 
   if not is_nil(Elixir.Confex.get_env(:oauth2_provider, :html) |> Keyword.get(:login_form)) do
     @login_form_path Elixir.Confex.get_env(:oauth2_provider, :html) |> Keyword.get(:login_form)
@@ -21,7 +21,8 @@ defmodule Oauth2Provider.HTTP.TokenController do
   end
 
   def login(conn, params) do
-    @login_http_response.(conn, params)
+    {mod, fun} = @login_http_response
+    Kernel.apply(mod, fun, [conn, params])
   end
 
   def create(conn, params) do
