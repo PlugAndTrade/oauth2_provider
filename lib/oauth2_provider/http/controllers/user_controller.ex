@@ -3,22 +3,9 @@ defmodule Oauth2Provider.HTTP.UserController do
   import Oauth2Provider.Guardian.Plug
 
   def get(conn, _params) do
-    actor = current_resource(conn)
-
-    case get_user(conn, actor) do
-      {:error, error} ->
-        json(conn, 400, error)
-      user ->
-        conn
-        |> put_no_cache_headers()
-        |> json(200, user)
-    end
+    claims = current_claims(conn)
+    conn
+    |> put_no_cache_headers()
+    |> json(200, claims)
   end
-
-  defp get_user(_conn, %Oauth2Provider.AppActor{user: resource}),
-    do: Oauth2Provider.Authenticatable.claims_from_resource(resource, "access")
-
-  defp get_user(conn, resource),
-    do: Oauth2Provider.Authenticatable.claims_from_resource(resource, "access")
-    |> Map.merge(%{"access_token" => current_token(conn)})
 end

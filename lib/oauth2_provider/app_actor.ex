@@ -85,9 +85,9 @@ defmodule Oauth2Provider.AppActor do
           client: %{id: client_id},
           user: resource,
           app: %{scopes: scopes}
-    }, typ) do
+    }, claims) do
       {:ok, res_type} = Oauth2Provider.Authenticatable.get_type_from_impl(resource)
-      resource_claims = Oauth2Provider.Authenticatable.TokenResource.claims(resource, typ)
+      resource_claims = Oauth2Provider.Authenticatable.TokenResource.claims(resource, claims)
       app_claims = %{
         "client_id" => client_id,
         "azp" => client_id,

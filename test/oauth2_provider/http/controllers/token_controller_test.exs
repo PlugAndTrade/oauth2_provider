@@ -28,7 +28,7 @@ defmodule Oauth2Provider.HTTP.TokenControllerTest do
 
     %{id: code} = token = Oauth2Provider.Token.new(
       app_id: app_id,
-      resource_claims: Oauth2Provider.Authenticatable.claims_from_resource(user, "access")
+      resource_claims: Oauth2Provider.Authenticatable.claims_from_resource(user, %{"sub" => user_id, "typ" => "access"})
     )
     Oauth2Provider.Token.Registry.put(:token_registry, token)
 
@@ -77,7 +77,7 @@ defmodule Oauth2Provider.HTTP.TokenControllerTest do
 
     %{id: code} = token = Oauth2Provider.Token.new(
       app_id: app_id,
-      resource_claims: Oauth2Provider.Authenticatable.claims_from_resource(user, "access")
+      resource_claims: Oauth2Provider.Authenticatable.claims_from_resource(user, %{"sub" => user_id, "typ" => "access"})
     )
     Oauth2Provider.Token.Registry.put(:token_registry, token)
 
@@ -111,7 +111,7 @@ defmodule Oauth2Provider.HTTP.TokenControllerTest do
 
     %{id: code} = token = Oauth2Provider.Token.new(
       app_id: app_id,
-      resource_claims: Oauth2Provider.Authenticatable.claims_from_resource(user, "access")
+      resource_claims: Oauth2Provider.Authenticatable.claims_from_resource(user, %{"sub" => user_id, "typ" => "access"})
     )
     Oauth2Provider.Token.Registry.put(:token_registry, token)
 

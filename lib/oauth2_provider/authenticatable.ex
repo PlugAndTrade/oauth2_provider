@@ -7,7 +7,7 @@ defmodule Oauth2Provider.Authenticatable do
 
   defprotocol TokenResource do
     @doc "Construct the claims to be encoded in the token from the resource"
-    @spec claims(term(), String.t()) :: map()
+    @spec claims(term(), map()) :: map()
     def claims(resource, typ)
 
     @doc "Returns the value to be used as subject in the token"
@@ -29,11 +29,12 @@ defmodule Oauth2Provider.Authenticatable do
     end
   end
 
-  def claims_from_resource(%impl{} = res, typ) do
+  def claims_from_resource(%impl{} = res, claims) do
     case get_type_from_impl(impl) do
       {:ok, type} ->
-        {:ok, sub} = TokenResource.sub(res)
-        Map.merge(TokenResource.claims(res, typ), %{"urn:pnt:oauth2:sub_typ" => type, "sub" => sub})
+        claims
+        |> merge_claims(TokenResource.claims(res, claims))
+        |> Map.put("urn:pnt:oauth2:sub_typ", type)
       err -> err
     end
   end
@@ -42,10 +43,14 @@ defmodule Oauth2Provider.Authenticatable do
     Map.merge(a, b, &merge_claim/3)
   end
 
-  def merge_claim("aud", a, b) when is_list(a) and is_list(b), do: a ++ b
-  def merge_claim("aud", a, b) when is_list(a), do: a ++ [b]
-  def merge_claim("aud", a, b) when is_list(b), do: [a | b]
-  def merge_claim(_key, _a, b), do: b
+  def merge_claim("aud", a, b) when is_list(a) and is_list(b),
+    do: a ++ b |> Enum.uniq()
+  def merge_claim("aud", a, b) when is_list(a),
+    do: a ++ [b] |> Enum.uniq()
+  def merge_claim("aud", a, b) when is_list(b),
+    do: [a | b] |> Enum.uniq()
+  def merge_claim(_key, _a, b),
+    do: b
 
   def is_admin?(%impl{} = res), do: impl.is_admin?(res)
 
