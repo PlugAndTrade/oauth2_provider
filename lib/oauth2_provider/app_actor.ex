@@ -26,13 +26,13 @@ defmodule Oauth2Provider.AppActor do
   end
 
   @impl Oauth2Provider.Authenticatable
-  def find_by_claims(%{"client_id" => client_id, "sub" => res_id, "res_type" => res_type} = claims) do
+  def find_by_claims(%{"client_id" => client_id, "sub" => res_id, "urn:pnt:oauth2:resource_typ" => res_type} = claims) do
     with {:ok, app} <-
            Oauth2Provider.Store.search_one(Oauth2Provider.App, client_id: client_id, user_id: res_id),
          {:ok, client} <-
            Oauth2Provider.Store.fetch(Oauth2Provider.Client, client_id),
          {:ok, resource} <-
-           Oauth2Provider.Authenticatable.find_by_claims(Map.put(claims, "sub_type", res_type)) do
+           Oauth2Provider.Authenticatable.find_by_claims(Map.put(claims, "urn:pnt:oauth2:sub_typ", res_type)) do
       {:ok, new(app, client, resource)}
     else
       err -> err
@@ -93,7 +93,7 @@ defmodule Oauth2Provider.AppActor do
         "azp" => client_id,
         "scope" => Enum.join(scopes, " "),
         "aud" => [client_id],
-        "res_type" => res_type
+        "urn:pnt:oauth2:resource_typ" => res_type
       }
       Oauth2Provider.Authenticatable.merge_claims(resource_claims, app_claims)
     end

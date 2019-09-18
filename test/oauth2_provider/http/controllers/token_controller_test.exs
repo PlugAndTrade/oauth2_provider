@@ -58,8 +58,8 @@ defmodule Oauth2Provider.HTTP.TokenControllerTest do
       "username" => "test",
       "azp" => ^client_id,
       "client_id" => ^client_id,
-      "sub_type" => "app",
-      "res_type" => "user",
+      "urn:pnt:oauth2:sub_typ" => "app",
+      "urn:pnt:oauth2:resource_typ" => "user",
       "aud" => ["oauth2_provider", ^client_id],
       "scope" => "openid a b"
     }} = Oauth2Provider.Guardian.decode_and_verify(jwt)

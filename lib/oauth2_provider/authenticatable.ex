@@ -15,7 +15,7 @@ defmodule Oauth2Provider.Authenticatable do
     def sub(resource)
   end
 
-  def find_by_claims(%{"sub_type" => type} = claims) do
+  def find_by_claims(%{"urn:pnt:oauth2:sub_typ" => type} = claims) do
     case get_impl_from_type(type) do
       {:ok, impl} -> impl.find_by_claims(claims)
       err -> err
@@ -33,7 +33,7 @@ defmodule Oauth2Provider.Authenticatable do
     case get_type_from_impl(impl) do
       {:ok, type} ->
         {:ok, sub} = TokenResource.sub(res)
-        Map.merge(TokenResource.claims(res, typ), %{"sub_type" => type, "sub" => sub})
+        Map.merge(TokenResource.claims(res, typ), %{"urn:pnt:oauth2:sub_typ" => type, "sub" => sub})
       err -> err
     end
   end
