@@ -11,7 +11,6 @@ defmodule Oauth2Provider do
     :ets.new(ets_session_table, [:named_table, :public, read_concurrency: true])
 
     children = [
-      {JwkProvider, [name: JwkProvider]},
       {Oauth2Provider.Token.Registry, [name: :token_registry]}
     ]
 

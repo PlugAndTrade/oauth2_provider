@@ -31,7 +31,7 @@ defmodule Oauth2Provider.MixProject do
       {:ecto_sql, "~> 3.1"},
       {:guardian, "~> 1.2"},
       {:jason, "~> 1.0"},
-      {:jwk_provider, github: "PlugAndTrade/jwk_provider", tag: "0.1.0"},
+      {:jwk_provider, github: "PlugAndTrade/jwk_provider", tag: "0.2.0"},
       {:postgrex, "~> 0.15.0"},
       {:plug, "~> 1.7"},
       {:plug_cowboy, "~> 2.0"},
