@@ -36,7 +36,7 @@ defmodule Oauth2Provider.MixProject do
       {:plug, "~> 1.7"},
       {:plug_cowboy, "~> 2.0"},
       {:plug_crypto, "~> 1.0"},
-      {:uuid, "~> 1.1"},
+      {:uuid, "~> 1.1"}
     ]
   end
 end

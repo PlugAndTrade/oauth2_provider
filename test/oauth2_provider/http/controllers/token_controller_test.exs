@@ -26,10 +26,17 @@ defmodule Oauth2Provider.HTTP.TokenControllerTest do
 
     {:ok, %{id: app_id}} = create_app(client_id, user_id)
 
-    %{id: code} = token = Oauth2Provider.Token.new(
-      app_id: app_id,
-      resource_claims: Oauth2Provider.Authenticatable.claims_from_resource(user, %{"sub" => user_id, "typ" => "access"})
-    )
+    %{id: code} =
+      token =
+      Oauth2Provider.Token.new(
+        app_id: app_id,
+        resource_claims:
+          Oauth2Provider.Authenticatable.claims_from_resource(user, %{
+            "sub" => user_id,
+            "typ" => "access"
+          })
+      )
+
     Oauth2Provider.Token.Registry.put(:token_registry, token)
 
     params = %{
@@ -47,22 +54,26 @@ defmodule Oauth2Provider.HTTP.TokenControllerTest do
 
     assert 201 == conn.status
     data = sent_json_resp(conn)
+
     assert %{
-      "access_token" => jwt,
-      "token_type" => "Bearer",
-      "expires_in" => ttl
-    } = data
-    assert {:ok, %{
-      "typ" => "access",
-      "sub" => ^user_id,
-      "username" => "test",
-      "azp" => ^client_id,
-      "client_id" => ^client_id,
-      "urn:pnt:oauth2:sub_typ" => "app",
-      "urn:pnt:oauth2:resource_typ" => "user",
-      "aud" => ["oauth2_provider", ^client_id],
-      "scope" => "openid a b"
-    }} = Oauth2Provider.Guardian.decode_and_verify(jwt)
+             "access_token" => jwt,
+             "token_type" => "Bearer",
+             "expires_in" => ttl
+           } = data
+
+    assert {:ok,
+            %{
+              "typ" => "access",
+              "sub" => ^user_id,
+              "username" => "test",
+              "azp" => ^client_id,
+              "client_id" => ^client_id,
+              "urn:pnt:oauth2:sub_typ" => "app",
+              "urn:pnt:oauth2:resource_typ" => "user",
+              "aud" => ["oauth2_provider", ^client_id],
+              "scope" => "openid a b"
+            }} = Oauth2Provider.Guardian.decode_and_verify(jwt)
+
     assert ["no-store"] = get_resp_header(conn, "cache-control")
     assert ["no-cache"] = get_resp_header(conn, "pragma")
   end
@@ -75,10 +86,17 @@ defmodule Oauth2Provider.HTTP.TokenControllerTest do
 
     {:ok, %{id: app_id}} = create_app(client_id, user_id)
 
-    %{id: code} = token = Oauth2Provider.Token.new(
-      app_id: app_id,
-      resource_claims: Oauth2Provider.Authenticatable.claims_from_resource(user, %{"sub" => user_id, "typ" => "access"})
-    )
+    %{id: code} =
+      token =
+      Oauth2Provider.Token.new(
+        app_id: app_id,
+        resource_claims:
+          Oauth2Provider.Authenticatable.claims_from_resource(user, %{
+            "sub" => user_id,
+            "typ" => "access"
+          })
+      )
+
     Oauth2Provider.Token.Registry.put(:token_registry, token)
 
     params = %{
@@ -109,10 +127,17 @@ defmodule Oauth2Provider.HTTP.TokenControllerTest do
 
     {:ok, %{id: app_id}} = create_app(client_id, user_id)
 
-    %{id: code} = token = Oauth2Provider.Token.new(
-      app_id: app_id,
-      resource_claims: Oauth2Provider.Authenticatable.claims_from_resource(user, %{"sub" => user_id, "typ" => "access"})
-    )
+    %{id: code} =
+      token =
+      Oauth2Provider.Token.new(
+        app_id: app_id,
+        resource_claims:
+          Oauth2Provider.Authenticatable.claims_from_resource(user, %{
+            "sub" => user_id,
+            "typ" => "access"
+          })
+      )
+
     Oauth2Provider.Token.Registry.put(:token_registry, token)
 
     params = %{
@@ -137,24 +162,26 @@ defmodule Oauth2Provider.HTTP.TokenControllerTest do
 
   test "create admin token" do
     pwd = :crypto.strong_rand_bytes(24) |> Base.url_encode64()
-    Application.put_env(:oauth2_provider, Oauth2Provider.SingletonAdmin, [password: pwd])
+    Application.put_env(:oauth2_provider, Oauth2Provider.SingletonAdmin, password: pwd)
 
     conn =
       conn(:post, "/token/admin", %{"username" => "admin", "password" => pwd})
       |> Oauth2Provider.HTTP.Router.call([])
 
     assert 201 == conn.status
+
     assert %{
-      "access_token" => jwt,
-      "token_type" => "Bearer",
-      "expires_in" => ttl
-    } = sent_json_resp(conn)
+             "access_token" => jwt,
+             "token_type" => "Bearer",
+             "expires_in" => ttl
+           } = sent_json_resp(conn)
+
     assert ["no-store"] = get_resp_header(conn, "cache-control")
     assert ["no-cache"] = get_resp_header(conn, "pragma")
   end
 
   test "create admin token disallow emtpy password" do
-    Application.put_env(:oauth2_provider, Oauth2Provider.SingletonAdmin, [password: ""])
+    Application.put_env(:oauth2_provider, Oauth2Provider.SingletonAdmin, password: "")
 
     conn =
       conn(:post, "/token/admin", %{"username" => "admin", "password" => ""})
@@ -173,11 +200,13 @@ defmodule Oauth2Provider.HTTP.TokenControllerTest do
       |> Oauth2Provider.HTTP.Router.call([])
 
     assert 200 == conn.status
+
     assert %{
-      "access_token" => jwt,
-      "token_type" => "Bearer",
-      "expires_in" => ttl
-    } = sent_json_resp(conn)
+             "access_token" => jwt,
+             "token_type" => "Bearer",
+             "expires_in" => ttl
+           } = sent_json_resp(conn)
+
     assert ["no-store"] = get_resp_header(conn, "cache-control")
     assert ["no-cache"] = get_resp_header(conn, "pragma")
   end

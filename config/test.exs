@@ -2,8 +2,7 @@ use Mix.Config
 
 config :oauth2_provider, ecto_repos: [Oauth2Provider.TestRepo]
 
-config :oauth2_provider, Oauth2Provider.Store,
-  repo: Oauth2Provider.TestRepo
+config :oauth2_provider, Oauth2Provider.Store, repo: Oauth2Provider.TestRepo
 
 config :oauth2_provider, Oauth2Provider.TestRepo,
   database: "oauth2_provider",

@@ -94,13 +94,17 @@ defmodule Oauth2Provider.HTTP.AppController do
       |> Map.update!(:errors, &[err | &1])
       |> Map.put(:error?, true)
 
-  defp generate_token(%{
-    app: %{id: app_id},
-    params: %{redirect_uri: redirect_uri, state: state},
-    resource: resource_claims,
-    authorization_flow: :code
-  } = res) do
-    %{id: token_id} = token = Oauth2Provider.Token.new(app_id: app_id, resource_claims: resource_claims)
+  defp generate_token(
+         %{
+           app: %{id: app_id},
+           params: %{redirect_uri: redirect_uri, state: state},
+           resource: resource_claims,
+           authorization_flow: :code
+         } = res
+       ) do
+    %{id: token_id} =
+      token = Oauth2Provider.Token.new(app_id: app_id, resource_claims: resource_claims)
+
     Oauth2Provider.Token.Registry.put(:token_registry, token)
 
     uri = add_query_params(redirect_uri, %{"authorization_code" => token_id, "state" => state})
@@ -108,23 +112,27 @@ defmodule Oauth2Provider.HTTP.AppController do
     Map.put(res, :authorization_uri, uri)
   end
 
-  defp generate_token(%{
-    app: %{id: app_id},
-    resource: resource_claims,
-    params: %{redirect_uri: redirect_uri, state: state, nonce: nonce},
-    authorization_flow: :implicit
-  } = res) do
+  defp generate_token(
+         %{
+           app: %{id: app_id},
+           resource: resource_claims,
+           params: %{redirect_uri: redirect_uri, state: state, nonce: nonce},
+           authorization_flow: :implicit
+         } = res
+       ) do
     {:ok, app_actor} = Oauth2Provider.AppActor.find_by_id(app_id, resource_claims)
+
     {:ok, access_token, id_token, %{"exp" => exp}} =
       Oauth2Provider.Guardian.generate_tokens(app_actor, %{"nonce" => nonce})
 
-    uri = add_query_params(redirect_uri, %{
-      "access_token" => access_token,
-      "token_type" => "Bearer",
-      "expires_in" => exp - :os.system_time(:seconds),
-      "state" => state,
-      "id_token" => id_token
-    })
+    uri =
+      add_query_params(redirect_uri, %{
+        "access_token" => access_token,
+        "token_type" => "Bearer",
+        "expires_in" => exp - :os.system_time(:seconds),
+        "state" => state,
+        "id_token" => id_token
+      })
 
     Map.put(res, :authorization_uri, uri)
   end
@@ -147,12 +155,15 @@ defmodule Oauth2Provider.HTTP.AppController do
   defp verify_authorization_flow(%{params: %{response_type: ["code"]}} = state),
     do: Map.put(state, :authorization_flow, :code)
 
-  defp verify_authorization_flow(%{
-    client: %{allow_noauth: true},
-    params: %{response_type: response_type, nonce: nonce}
-  } = state) do
+  defp verify_authorization_flow(
+         %{
+           client: %{allow_noauth: true},
+           params: %{response_type: response_type, nonce: nonce}
+         } = state
+       ) do
     has_code = "code" in response_type
     has_id = "id_token" in response_type
+
     case {has_code, has_id, nonce} do
       {false, _, nil} ->
         state
@@ -184,22 +195,29 @@ defmodule Oauth2Provider.HTTP.AppController do
   end
 
   defp verify_authorization_flow(state),
-    do: state
-        |> append_error(%{
-          message: "Invalid request",
-          code: "ERR_BAD_REQUEST"
-        })
-        |> Map.put(:authorization_flow, nil)
+    do:
+      state
+      |> append_error(%{
+        message: "Invalid request",
+        code: "ERR_BAD_REQUEST"
+      })
+      |> Map.put(:authorization_flow, nil)
 
-  defp validate_verify_params(res, %{
-         "client_id" => client_id,
-         "scope" => scopes,
-         "state" => state,
-         "response_type" => response_type,
-         "redirect_uri" => redirect_uri
-       } = params) do
-    case response_type |> String.split(" ") |> Enum.all?(&(&1 in ["code", "id_token", "token"])) do
-      true -> Map.put(res, :params, %{
+  defp validate_verify_params(
+         res,
+         %{
+           "client_id" => client_id,
+           "scope" => scopes,
+           "state" => state,
+           "response_type" => response_type,
+           "redirect_uri" => redirect_uri
+         } = params
+       ) do
+    case response_type
+         |> String.split(" ")
+         |> Enum.all?(&(&1 in ["code", "id_token", "token"])) do
+      true ->
+        Map.put(res, :params, %{
           client_id: client_id,
           scopes: String.split(scopes, " "),
           state: state,
@@ -207,6 +225,7 @@ defmodule Oauth2Provider.HTTP.AppController do
           response_type: String.split(response_type, " "),
           nonce: Map.get(params, "nonce")
         })
+
       false ->
         res
         |> append_error(%{message: "Invalid response_type", code: "ERR_BAD_REQUEST"})
@@ -227,7 +246,9 @@ defmodule Oauth2Provider.HTTP.AppController do
     end
   end
 
-  defp get_app(%{params: %{client_id: client_id}, resource: %{"sub" => sub}, error?: false} = state) do
+  defp get_app(
+         %{params: %{client_id: client_id}, resource: %{"sub" => sub}, error?: false} = state
+       ) do
     Map.put(
       state,
       :app,
@@ -240,7 +261,8 @@ defmodule Oauth2Provider.HTTP.AppController do
   defp verify_scopes(
          %{params: %{scopes: request_scopes}, app: %{scopes: authorized_scopes}} = state
        ) do
-    if "openid" in request_scopes and Enum.all?(request_scopes, fn s -> Enum.any?(authorized_scopes, &(&1 == s)) end) do
+    if "openid" in request_scopes and
+         Enum.all?(request_scopes, fn s -> Enum.any?(authorized_scopes, &(&1 == s)) end) do
       Map.put(state, :scopes_valid?, true)
     else
       state
@@ -318,7 +340,6 @@ defmodule Oauth2Provider.HTTP.AppController do
       |> append_error(%{message: "Invalid parametes", code: "ERR_BAD_REQUEST"})
       |> Map.put(:params, nil)
     end
-
   end
 
   defp validate_create_params(state, _) do

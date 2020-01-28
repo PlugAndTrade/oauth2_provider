@@ -16,9 +16,15 @@ defmodule Oauth2Provider.Store do
 
   def search_one(mod, clauses) do
     case @repo.all(filter_to_query(mod, clauses)) do
-      [] -> {:error, %{code: "ERR_NOT_FOUND", message: "Resource not found"}}
-      [app] -> {:ok, app}
-      _ -> {:error, %{code: "ERR_MULTIPLE_FOUND", message: "Found multiple resources matching the query"}}
+      [] ->
+        {:error, %{code: "ERR_NOT_FOUND", message: "Resource not found"}}
+
+      [app] ->
+        {:ok, app}
+
+      _ ->
+        {:error,
+         %{code: "ERR_MULTIPLE_FOUND", message: "Found multiple resources matching the query"}}
     end
   end
 

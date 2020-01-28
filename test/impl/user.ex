@@ -32,9 +32,9 @@ defmodule Oauth2Provider.Test.User do
   end
 
   def init_login(conn, _params) do
-      conn
-      |> Plug.Conn.put_resp_content_type("text/plain")
-      |> Plug.Conn.send_resp(:ok, "OK")
+    conn
+    |> Plug.Conn.put_resp_content_type("text/plain")
+    |> Plug.Conn.send_resp(:ok, "OK")
   end
 
   @impl Oauth2Provider.Authenticatable

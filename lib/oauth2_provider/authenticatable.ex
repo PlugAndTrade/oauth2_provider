@@ -35,7 +35,9 @@ defmodule Oauth2Provider.Authenticatable do
         claims
         |> merge_claims(TokenResource.claims(res, claims))
         |> Map.put("urn:pnt:oauth2:sub_typ", type)
-      err -> err
+
+      err ->
+        err
     end
   end
 
@@ -44,11 +46,14 @@ defmodule Oauth2Provider.Authenticatable do
   end
 
   def merge_claim("aud", a, b) when is_list(a) and is_list(b),
-    do: a ++ b |> Enum.uniq()
+    do: (a ++ b) |> Enum.uniq()
+
   def merge_claim("aud", a, b) when is_list(a),
-    do: a ++ [b] |> Enum.uniq()
+    do: (a ++ [b]) |> Enum.uniq()
+
   def merge_claim("aud", a, b) when is_list(b),
     do: [a | b] |> Enum.uniq()
+
   def merge_claim(_key, _a, b),
     do: b
 
@@ -57,7 +62,9 @@ defmodule Oauth2Provider.Authenticatable do
   def get_type_from_impl(%impl{}), do: get_type_from_impl(impl)
 
   def get_type_from_impl(impl) do
-    case Enum.find_value(@autheticatables, nil, fn {type, mod} -> if mod == impl, do: type, else: nil end) do
+    case Enum.find_value(@autheticatables, nil, fn {type, mod} ->
+           if mod == impl, do: type, else: nil
+         end) do
       nil -> {:error, %{message: "Unknown resource type", code: "ERR_AUTH_UNKOWN_RESOURCE_TYPE"}}
       type -> {:ok, type}
     end

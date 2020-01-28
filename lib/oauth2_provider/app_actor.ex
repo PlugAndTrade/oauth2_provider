@@ -26,13 +26,21 @@ defmodule Oauth2Provider.AppActor do
   end
 
   @impl Oauth2Provider.Authenticatable
-  def find_by_claims(%{"client_id" => client_id, "sub" => res_id, "urn:pnt:oauth2:resource_typ" => res_type} = claims) do
+  def find_by_claims(
+        %{"client_id" => client_id, "sub" => res_id, "urn:pnt:oauth2:resource_typ" => res_type} =
+          claims
+      ) do
     with {:ok, app} <-
-           Oauth2Provider.Store.search_one(Oauth2Provider.App, client_id: client_id, user_id: res_id),
+           Oauth2Provider.Store.search_one(Oauth2Provider.App,
+             client_id: client_id,
+             user_id: res_id
+           ),
          {:ok, client} <-
            Oauth2Provider.Store.fetch(Oauth2Provider.Client, client_id),
          {:ok, resource} <-
-           Oauth2Provider.Authenticatable.find_by_claims(Map.put(claims, "urn:pnt:oauth2:sub_typ", res_type)) do
+           Oauth2Provider.Authenticatable.find_by_claims(
+             Map.put(claims, "urn:pnt:oauth2:sub_typ", res_type)
+           ) do
       {:ok, new(app, client, resource)}
     else
       err -> err
@@ -40,17 +48,21 @@ defmodule Oauth2Provider.AppActor do
   end
 
   @impl Oauth2Provider.Authenticatable
-  def find_and_verify(%{
-        "grant_type" => "code",
-        "code" => token,
-        "client_id" => client_id,
-        "client_secret" => client_secret,
-        "redirect_uri" => redirect_uri
-      } = params) do
-    with {:ok, %{app_id: app_id, resource_claims: claims}} <- Oauth2Provider.Token.Registry.pop(:token_registry, token),
+  def find_and_verify(
+        %{
+          "grant_type" => "code",
+          "code" => token,
+          "client_id" => client_id,
+          "client_secret" => client_secret,
+          "redirect_uri" => redirect_uri
+        } = params
+      ) do
+    with {:ok, %{app_id: app_id, resource_claims: claims}} <-
+           Oauth2Provider.Token.Registry.pop(:token_registry, token),
          {:ok, %{client: client, app: app} = app_actor} <- find_by_id(app_id, claims),
          :ok <- verify(app, client, client_id, client_secret, redirect_uri) do
-      {:ok, app_actor, Map.drop(params, ["grant_type", "code", "client_id", "client_secret", "redirect_uri"])}
+      {:ok, app_actor,
+       Map.drop(params, ["grant_type", "code", "client_id", "client_secret", "redirect_uri"])}
     else
       err -> err
     end
@@ -81,13 +93,17 @@ defmodule Oauth2Provider.AppActor do
     do: {:error, %{message: "Authentication failed", code: "ERR_UNAUTHORIZED"}}
 
   defimpl Oauth2Provider.Authenticatable.TokenResource do
-    def claims(%Oauth2Provider.AppActor{
-          client: %{id: client_id},
-          user: resource,
-          app: %{scopes: scopes}
-    }, claims) do
+    def claims(
+          %Oauth2Provider.AppActor{
+            client: %{id: client_id},
+            user: resource,
+            app: %{scopes: scopes}
+          },
+          claims
+        ) do
       {:ok, res_type} = Oauth2Provider.Authenticatable.get_type_from_impl(resource)
       resource_claims = Oauth2Provider.Authenticatable.TokenResource.claims(resource, claims)
+
       app_claims = %{
         "client_id" => client_id,
         "azp" => client_id,
@@ -95,6 +111,7 @@ defmodule Oauth2Provider.AppActor do
         "aud" => [client_id],
         "urn:pnt:oauth2:resource_typ" => res_type
       }
+
       Oauth2Provider.Authenticatable.merge_claims(resource_claims, app_claims)
     end
 

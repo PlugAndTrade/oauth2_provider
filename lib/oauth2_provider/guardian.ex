@@ -13,22 +13,25 @@ defmodule Oauth2Provider.Guardian do
   end
 
   def generate_tokens(resource, claims \\ %{}) do
-    with {:ok, secret} <- Oauth2Provider.Guardian.DynamicSecretFetcher.fetch_signing_secret(:some_impl, []),
+    with {:ok, secret} <-
+           Oauth2Provider.Guardian.DynamicSecretFetcher.fetch_signing_secret(:some_impl, []),
          key_headers <- Oauth2Provider.Guardian.DynamicSecretFetcher.jwt_key_headers(secret),
-         {:ok, access_token, encoded_claims} <- Oauth2Provider.Guardian.encode_and_sign(
-           resource,
-           claims,
-           secret: secret,
-           headers: key_headers,
-           token_type: "access"
-         ),
-         {:ok, id_token, _} <- Oauth2Provider.Guardian.encode_and_sign(
-           resource,
-           claims,
-           secret: secret,
-           headers: key_headers,
-           token_type: "id"
-         ) do
+         {:ok, access_token, encoded_claims} <-
+           Oauth2Provider.Guardian.encode_and_sign(
+             resource,
+             claims,
+             secret: secret,
+             headers: key_headers,
+             token_type: "access"
+           ),
+         {:ok, id_token, _} <-
+           Oauth2Provider.Guardian.encode_and_sign(
+             resource,
+             claims,
+             secret: secret,
+             headers: key_headers,
+             token_type: "id"
+           ) do
       {:ok, access_token, id_token, encoded_claims}
     else
       {:error, err} -> {:error, err}

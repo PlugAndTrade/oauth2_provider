@@ -9,10 +9,12 @@ defmodule Oauth2Provider.HTTP.ClientController do
          changeset <-
            Oauth2Provider.Client.changeset(Map.merge(create_params, %{secret: secret_hash})),
          {:ok, client} <- Oauth2Provider.Store.insert(changeset) do
-      data = client
-             |> Map.from_struct()
-             |> Map.take([:id, :name, :redirect_uris, :allow_noauth])
-             |> Map.merge(%{secret: secret})
+      data =
+        client
+        |> Map.from_struct()
+        |> Map.take([:id, :name, :redirect_uris, :allow_noauth])
+        |> Map.merge(%{secret: secret})
+
       conn
       |> put_no_cache_headers()
       |> json(201, data)
@@ -21,17 +23,23 @@ defmodule Oauth2Provider.HTTP.ClientController do
         json(conn, 400, %{errors: [err]})
 
       :forbidden ->
-        json(conn, 403, %{errors: [%{
-          code: "ERR_NOT_ADMIN",
-          message: "Only administrators may create new clients"}]
+        json(conn, 403, %{
+          errors: [
+            %{code: "ERR_NOT_ADMIN", message: "Only administrators may create new clients"}
+          ]
         })
 
       err ->
         Logger.error(inspect(err))
-        json(conn, 500, %{errors: [%{
-          code: "ERR_INTENAL_ERROR",
-          message: "Unknown error"
-        }]})
+
+        json(conn, 500, %{
+          errors: [
+            %{
+              code: "ERR_INTENAL_ERROR",
+              message: "Unknown error"
+            }
+          ]
+        })
     end
   end
 
@@ -42,17 +50,23 @@ defmodule Oauth2Provider.HTTP.ClientController do
       |> json(201, %{"clients" => clients})
     else
       :forbidden ->
-        json(conn, 403, %{errors: [%{
-          code: "ERR_NOT_ADMIN",
-          message: "Only administrators may create new clients"}]
+        json(conn, 403, %{
+          errors: [
+            %{code: "ERR_NOT_ADMIN", message: "Only administrators may create new clients"}
+          ]
         })
 
       err ->
         Logger.error(inspect(err))
-        json(conn, 500, %{errors: [%{
-          code: "ERR_INTENAL_ERROR",
-          message: "Unknown error"
-        }]})
+
+        json(conn, 500, %{
+          errors: [
+            %{
+              code: "ERR_INTENAL_ERROR",
+              message: "Unknown error"
+            }
+          ]
+        })
     end
   end
 
@@ -69,10 +83,12 @@ defmodule Oauth2Provider.HTTP.ClientController do
     {secret, secret_hash}
   end
 
-  def validate_create(%{
-    "name" => name,
-    "redirect_uris" => redirect_uris
-  } = params) do
+  def validate_create(
+        %{
+          "name" => name,
+          "redirect_uris" => redirect_uris
+        } = params
+      ) do
     %{
       name: name,
       redirect_uris: redirect_uris,

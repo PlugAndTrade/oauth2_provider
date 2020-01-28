@@ -44,11 +44,13 @@ defmodule Mix.Tasks.Oauth2Provider.Gen.Migrations do
     @changes
     |> Enum.map(fn {name, change} ->
       existing = Path.join([priv_path, "migrations", "*_#{name}.exs"]) |> Path.wildcard()
+
       if existing != [] do
-        Mix.shell.info("#{name} already created at #{List.first(existing)}")
+        Mix.shell().info("#{name} already created at #{List.first(existing)}")
       else
         # Ensure every subsequent migration has a larger timestamp
         :timer.sleep(1000)
+
         Mix.Tasks.Ecto.Gen.Migration.run([
           name,
           "-r",

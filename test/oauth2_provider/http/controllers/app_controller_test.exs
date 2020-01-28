@@ -127,26 +127,28 @@ defmodule Oauth2Provider.HTTP.AppControllerTest do
     assert [
              "http://test_client/callback?" <> query
            ] = get_resp_header(conn, "location")
-    #%{query: query} = URI.parse(redirected_uri)
-    assert %{
-      "access_token" => jwt,
-      "token_type" => "Bearer",
-      "expires_in" => _,
-      "state" => "asdf"
-    } = URI.decode_query(query)
 
-    assert {:ok, %{
-      "typ" => "access",
-      "sub" => ^user_id,
-      "username" => "test",
-      "azp" => ^client_id,
-      "client_id" => ^client_id,
-      "urn:pnt:oauth2:sub_typ" => "app",
-      "urn:pnt:oauth2:resource_typ" => "user",
-      "aud" => ["oauth2_provider", ^client_id],
-      "scope" => "openid a b",
-      "nonce" => ^nonce
-    }} = Oauth2Provider.Guardian.decode_and_verify(jwt)
+    # %{query: query} = URI.parse(redirected_uri)
+    assert %{
+             "access_token" => jwt,
+             "token_type" => "Bearer",
+             "expires_in" => _,
+             "state" => "asdf"
+           } = URI.decode_query(query)
+
+    assert {:ok,
+            %{
+              "typ" => "access",
+              "sub" => ^user_id,
+              "username" => "test",
+              "azp" => ^client_id,
+              "client_id" => ^client_id,
+              "urn:pnt:oauth2:sub_typ" => "app",
+              "urn:pnt:oauth2:resource_typ" => "user",
+              "aud" => ["oauth2_provider", ^client_id],
+              "scope" => "openid a b",
+              "nonce" => ^nonce
+            }} = Oauth2Provider.Guardian.decode_and_verify(jwt)
   end
 
   test "verify authorization implicit w/o allow_noauth" do
@@ -187,14 +189,16 @@ defmodule Oauth2Provider.HTTP.AppControllerTest do
       "scope" => "a b",
       "redirect_uri" => "http://test_client/callback",
       "state" => "asdf",
-      "response_type" => "code"
+      "response_type" => "code",
+      "provider" => "google"
     }
 
     conn =
       conn(:get, "/apps/verify", params)
       |> Oauth2Provider.HTTP.Router.call([])
 
+    assert ["/token?" <> query] = get_resp_header(conn, "location")
+    assert %{"redirect_to" => _, "provider" => _} = URI.query_decoder(query)
     assert 302 == conn.status
-    assert ["/token?" <> _params] = get_resp_header(conn, "location")
   end
 end

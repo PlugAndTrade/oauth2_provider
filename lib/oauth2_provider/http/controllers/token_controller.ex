@@ -3,7 +3,11 @@ defmodule Oauth2Provider.HTTP.TokenController do
   import Oauth2Provider.Guardian.Plug
   require EEx
 
-  @login_http_response Elixir.Confex.get_env(:oauth2_provider, :init_login, {Oauth2Provider.HTTP.TokenController, :login_html_template})
+  @login_http_response Elixir.Confex.get_env(
+                         :oauth2_provider,
+                         :init_login,
+                         {Oauth2Provider.HTTP.TokenController, :login_html_template}
+                       )
 
   if not is_nil(Elixir.Confex.get_env(:oauth2_provider, :html) |> Keyword.get(:login_form)) do
     @login_form_path Elixir.Confex.get_env(:oauth2_provider, :html) |> Keyword.get(:login_form)
@@ -28,13 +32,14 @@ defmodule Oauth2Provider.HTTP.TokenController do
   def create(conn, params) do
     with {:ok, %{type: type}} <- validate(params),
          {:ok, resource, params} <- Oauth2Provider.Authenticatable.find_and_verify(type, params),
-         {:ok, access_token, id_token, %{"exp" => exp} = claims} <- Oauth2Provider.Guardian.generate_tokens(resource, %{}) do
-
-      conn = conn
-      |> put_current_claims(claims)
-      |> put_current_resource(resource)
-      |> put_current_token(access_token)
-      |> put_session_token(access_token)
+         {:ok, access_token, id_token, %{"exp" => exp} = claims} <-
+           Oauth2Provider.Guardian.generate_tokens(resource, %{}) do
+      conn =
+        conn
+        |> put_current_claims(claims)
+        |> put_current_resource(resource)
+        |> put_current_token(access_token)
+        |> put_session_token(access_token)
 
       case params do
         %{"redirect_to" => redirect_to} ->
@@ -51,7 +56,7 @@ defmodule Oauth2Provider.HTTP.TokenController do
               "access_token" => access_token,
               "id_token" => id_token,
               "token_type" => "Bearer",
-              "expires_in" => exp - :os.system_time(:seconds),
+              "expires_in" => exp - :os.system_time(:seconds)
             }
           )
       end
@@ -79,6 +84,7 @@ defmodule Oauth2Provider.HTTP.TokenController do
       true ->
         %{"exp" => exp} = current_claims(conn)
         ttl = exp - :os.system_time(:seconds)
+
         conn
         |> put_no_cache_headers()
         |> json(
@@ -86,14 +92,22 @@ defmodule Oauth2Provider.HTTP.TokenController do
           %{
             "access_token" => current_token(conn),
             "token_type" => "Bearer",
-            "expires_in" => ttl,
+            "expires_in" => ttl
           }
         )
+
       false ->
         json(
           conn,
           401,
-          %{errors: [%{code: "ERR_NOT_AUTHENTICATED", message: "Must be authenticated to retreive token data."}]}
+          %{
+            errors: [
+              %{
+                code: "ERR_NOT_AUTHENTICATED",
+                message: "Must be authenticated to retreive token data."
+              }
+            ]
+          }
         )
     end
   end

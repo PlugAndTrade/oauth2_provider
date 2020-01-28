@@ -6,6 +6,6 @@ defmodule Oauth2Provider.HTTP.TokenRoutes do
       {:get, "", :login},
       {:get, "current", :current},
       {:post, ":type", :create},
-      {:get, ":type/callback", :create},
+      {:get, ":type/callback", :create}
     ]
 end

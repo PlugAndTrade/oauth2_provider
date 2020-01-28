@@ -4,6 +4,7 @@ defmodule Oauth2Provider.HTTP.UserController do
 
   def get(conn, _params) do
     claims = current_claims(conn)
+
     conn
     |> put_no_cache_headers()
     |> json(200, claims)
