@@ -11,7 +11,7 @@ defmodule Oauth2Provider.Guardian.ErrorHandler do
 
   @impl Guardian.Plug.ErrorHandler
   def auth_error(%Plug.Conn{} = conn, {type, reason}, opts) do
-    params = Map.take(conn.query_params, "provider")
+    params = Map.take(conn.query_params, ["provider"])
 
     query =
       %{"redirect_to" => URI.encode_www_form(request_url(conn))}
