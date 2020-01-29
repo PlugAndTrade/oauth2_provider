@@ -14,7 +14,7 @@ defmodule Oauth2Provider.Guardian.ErrorHandler do
     params = Map.take(conn.query_params, ["provider"])
 
     query =
-      %{"redirect_to" => URI.encode_www_form(request_url(conn))}
+      %{"redirect_to" => request_url(conn)}
       |> Map.merge(params)
       |> URI.encode_query()
 
